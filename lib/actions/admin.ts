@@ -206,3 +206,51 @@ export async function adminEditRecordAction(formData: FormData) {
     );
   }
 }
+
+export async function toggleParticipantActiveAction(formData: FormData) {
+  const session = await requireRole("admin", "/admin/login");
+  await getCurrentUserRow(session);
+  const supabase = getSupabaseAdmin();
+
+  try {
+    const userId = String(formData.get("user_id") ?? "");
+    const nextActive = String(formData.get("next_active") ?? "") === "true";
+
+    if (!userId) {
+      throw new Error("대상 참가자를 찾지 못했습니다.");
+    }
+
+    const { data: targetUser, error: fetchError } = await supabase
+      .from("users")
+      .select("id, role, is_active")
+      .eq("id", userId)
+      .single();
+
+    if (fetchError || !targetUser || targetUser.role !== "participant") {
+      throw new Error("대상 참가자를 찾지 못했습니다.");
+    }
+
+    const { error } = await supabase
+      .from("users")
+      .update({
+        is_active: nextActive
+      })
+      .eq("id", userId);
+
+    if (error) {
+      throw new Error("참가자 상태 변경에 실패했습니다.");
+    }
+
+    revalidatePath("/admin/participants");
+    revalidatePath("/admin/overview");
+    revalidatePath("/leaderboard");
+    redirect(`/admin/participants?updated=${nextActive ? "activated" : "deactivated"}`);
+  } catch (error) {
+    rethrowIfRedirectError(error);
+    redirect(
+      buildAdminRedirect("/admin/participants", {
+        error: error instanceof Error ? error.message : "참가자 상태 변경에 실패했습니다."
+      })
+    );
+  }
+}

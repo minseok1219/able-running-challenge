@@ -172,7 +172,7 @@ export async function getAdminParticipants() {
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date), records(distance_m, status)"
+      "id, name, username, participant_code, role, is_active, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date), records(distance_m, status)"
     )
     .eq("role", "participant")
     .order("created_at", { ascending: false });
@@ -195,6 +195,7 @@ export async function getAdminParticipants() {
       name: row.name,
       username: row.username ?? "-",
       participantCode: row.participant_code ?? "-",
+      isActive: row.is_active,
       branchName: branch?.name ?? "-",
       challengeName: challenge?.name ?? "-",
       approvedDistanceM,
@@ -240,7 +241,8 @@ export async function getAdminOverview() {
       supabase
         .from("users")
         .select("id, role, branches:branch_id(name), challenge_types:challenge_type_id(name)")
-        .eq("role", "participant"),
+        .eq("role", "participant")
+        .eq("is_active", true),
       supabase.from("records").select("status")
     ]);
 
