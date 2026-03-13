@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { SetupNotice } from "@/components/setup-notice";
 import { AppShell, ButtonLink, Panel } from "@/components/ui";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
@@ -10,7 +12,7 @@ export default async function HomePage() {
 
   return (
     <AppShell
-      title="CrossFit ABLE"
+      title=""
       description="가입, 기록 입력, 자동 판정, 리더보드, 관리자 운영까지 한 흐름으로 연결된 1차 버전입니다."
       actions={
         <>
@@ -21,6 +23,16 @@ export default async function HomePage() {
         </>
       }
     >
+      <div className="-mb-2 flex justify-center">
+        <Image
+          src="/able-logo.png"
+          alt="CrossFit ABLE"
+          width={360}
+          height={205}
+          className="h-24 w-auto object-contain sm:h-28"
+          priority
+        />
+      </div>
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
       <Panel title="챌린지 기간" description="참가자는 한 가지 챌린지만 선택할 수 있습니다.">
         <div className="grid gap-4 md:grid-cols-2">

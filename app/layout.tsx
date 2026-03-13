@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -15,15 +16,27 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="ko">
       <body>
-        <div className="border-b border-slate-200 bg-white/90 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-            <Link href="/" className="text-base font-semibold">
-              ABLE RUNNING CHALLENGE
-            </Link>
-            <PublicNav />
+        <div className="min-h-screen bg-mist">
+          <div className="border-b border-slate-200 bg-white/90 backdrop-blur">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/able-logo.png"
+                  alt="CrossFit ABLE"
+                  width={168}
+                  height={96}
+                  className="h-12 w-auto object-contain"
+                  priority
+                />
+              </Link>
+              <PublicNav />
+            </div>
           </div>
+          {children}
+          <footer className="mx-auto mt-8 w-full max-w-6xl px-4 pb-8 pt-2 text-center text-sm text-slate-500 sm:px-6">
+            Copyright © CrossFit ABLE
+          </footer>
         </div>
-        {children}
       </body>
     </html>
   );

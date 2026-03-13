@@ -10,7 +10,7 @@ export function AppShell({
   actions,
   children
 }: {
-  title: string;
+  title?: string;
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
@@ -21,7 +21,7 @@ export function AppShell({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-accent">ABLE RUNNING CHALLENGE</p>
-            <h1 className="mt-2 text-3xl font-semibold">{title}</h1>
+            {title ? <h1 className="mt-2 text-3xl font-semibold">{title}</h1> : null}
             {description ? <p className="mt-2 text-sm text-slate-600">{description}</p> : null}
           </div>
           {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
