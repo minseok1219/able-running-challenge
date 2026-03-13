@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   return (
     <AppShell
       title={`${user.name} 님 대시보드`}
-      description={`${user.participant_code} · ${user.branches?.name ?? "-"} · ${user.challenge_types?.name ?? "-"}`}
+      description={`@${user.username ?? "-"} · ${user.participant_code} · ${user.branches?.name ?? "-"} · ${user.challenge_types?.name ?? "-"}`}
       actions={
         <>
           <ParticipantNav />

@@ -35,7 +35,7 @@ export default async function AdminRecordsPage({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">
-                      {record.users?.name} ({record.users?.participant_code})
+                      {record.users?.name} (@{record.users?.username ?? "-"} · {record.users?.participant_code})
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
                       {formatDate(record.run_date)} · {formatDistanceNumber(record.distance_m)}km ·{" "}

@@ -12,7 +12,7 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <AppShell title="참가자 로그인" description="participant_code와 비밀번호로 로그인합니다.">
+    <AppShell title="참가자 로그인" description="가입할 때 만든 아이디와 비밀번호로 로그인합니다.">
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
       <Panel title="로그인">
         <AlertMessage message={params.error} />

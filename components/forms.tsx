@@ -14,6 +14,7 @@ export function SignupForm({
 }) {
   return (
     <form action={action} className="grid gap-4">
+      <Input label="아이디" name="username" placeholder="예: runner123" required />
       <Input label="이름" name="name" required />
       <Input label="연락처 뒤 4자리" name="phone_last4" inputMode="numeric" required />
       <Input label="비밀번호" name="password" type="password" required />
@@ -44,7 +45,7 @@ export function ParticipantLoginForm({
 }) {
   return (
     <form action={action} className="grid gap-4">
-      <Input label="participant_code" name="participant_code" placeholder="ARC-123456" required />
+      <Input label="아이디" name="username" placeholder="예: runner123" required />
       <Input label="비밀번호" name="password" type="password" required />
       <SubmitButton>로그인</SubmitButton>
     </form>

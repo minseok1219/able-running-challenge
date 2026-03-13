@@ -117,7 +117,7 @@ export async function getLeaderboard({
     const query = supabase
       .from("users")
       .select(
-        "id, name, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m), records(distance_m, status)"
+        "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m), records(distance_m, status)"
       )
       .eq("role", "participant")
       .eq("is_active", true);
@@ -172,7 +172,7 @@ export async function getAdminParticipants() {
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, name, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date), records(distance_m, status)"
+      "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date), records(distance_m, status)"
     )
     .eq("role", "participant")
     .order("created_at", { ascending: false });
@@ -193,6 +193,7 @@ export async function getAdminParticipants() {
     return {
       id: row.id,
       name: row.name,
+      username: row.username ?? "-",
       participantCode: row.participant_code ?? "-",
       branchName: branch?.name ?? "-",
       challengeName: challenge?.name ?? "-",
@@ -208,7 +209,7 @@ export async function getAdminRecords() {
   const { data, error } = await supabase
     .from("records")
     .select(
-      "id, user_id, run_date, distance_m, pace_sec_per_km, note, status, warning_reason, created_at, updated_at, users!inner(id, name, participant_code, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m))"
+      "id, user_id, run_date, distance_m, pace_sec_per_km, note, status, warning_reason, created_at, updated_at, users!inner(id, name, username, participant_code, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m))"
     )
     .order("run_date", { ascending: false })
     .order("created_at", { ascending: false });

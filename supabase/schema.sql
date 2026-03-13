@@ -22,6 +22,7 @@ create table if not exists challenge_types (
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
   participant_code text unique,
+  username text unique,
   name text not null,
   phone_last4 text,
   password_hash text not null,
@@ -32,6 +33,9 @@ create table if not exists users (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table users add column if not exists username text;
+create unique index if not exists idx_users_username_unique on users(username) where username is not null;
 
 create table if not exists records (
   id uuid primary key default gen_random_uuid(),

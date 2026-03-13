@@ -28,19 +28,21 @@ export async function signupAction(formData: FormData) {
       throw new Error("Supabase 환경설정이 없어 가입을 처리할 수 없습니다. .env.local을 먼저 설정해주세요.");
     }
 
+    const username = String(formData.get("username") ?? "").trim().toLowerCase();
     const name = String(formData.get("name") ?? "");
     const phoneLast4 = String(formData.get("phone_last4") ?? "");
     const password = String(formData.get("password") ?? "");
     const branchId = String(formData.get("branch_id") ?? "");
     const challengeTypeId = String(formData.get("challenge_type_id") ?? "");
 
-    validateSignupInput({ name, phoneLast4, password, branchId, challengeTypeId });
+    validateSignupInput({ username, name, phoneLast4, password, branchId, challengeTypeId });
 
     const supabase = getSupabaseAdmin();
     const participantCode = await generateParticipantCode();
 
     const { error } = await supabase.from("users").insert({
       participant_code: participantCode,
+      username,
       name,
       phone_last4: phoneLast4,
       password_hash: hashPassword(password),
@@ -50,6 +52,10 @@ export async function signupAction(formData: FormData) {
     });
 
     if (error) {
+      if (error.code === "23505") {
+        throw new Error("이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.");
+      }
+
       throw new Error("가입 처리 중 오류가 발생했습니다.");
     }
 
@@ -75,7 +81,7 @@ async function findUserByCredentials({
   role,
   password
 }: {
-  field: "participant_code" | "name";
+  field: "participant_code" | "username" | "name";
   value: string;
   role: "participant" | "admin";
   password: string;
@@ -84,7 +90,7 @@ async function findUserByCredentials({
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, participant_code, name, phone_last4, password_hash, branch_id, challenge_type_id, role, is_active, created_at, updated_at"
+      "id, participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role, is_active, created_at, updated_at"
     )
     .eq(field, value)
     .eq("role", role)
@@ -98,7 +104,7 @@ async function findUserByCredentials({
   if (!data) {
     throw new Error(
       role === "participant"
-        ? "participant_code 계정을 찾지 못했습니다."
+        ? "아이디 계정을 찾지 못했습니다."
         : "관리자 계정을 찾지 못했습니다."
     );
   }
@@ -117,13 +123,13 @@ export async function participantLoginAction(formData: FormData) {
       throw new Error("Supabase 환경설정이 없어 로그인을 처리할 수 없습니다. .env.local을 먼저 설정해주세요.");
     }
 
-    const participantCode = String(formData.get("participant_code") ?? "").trim().toUpperCase();
+    const username = String(formData.get("username") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
 
-    validateParticipantLoginInput(participantCode, password);
+    validateParticipantLoginInput(username, password);
     const user = await findUserByCredentials({
-      field: "participant_code",
-      value: participantCode,
+      field: "username",
+      value: username,
       role: "participant",
       password
     });
@@ -132,6 +138,7 @@ export async function participantLoginAction(formData: FormData) {
       id: user.id,
       role: "participant",
       name: user.name,
+      username: user.username,
       participantCode: user.participant_code
     };
 
@@ -169,6 +176,7 @@ export async function adminLoginAction(formData: FormData) {
       id: user.id,
       role: "admin",
       name: user.name,
+      username: user.username,
       participantCode: user.participant_code
     };
 

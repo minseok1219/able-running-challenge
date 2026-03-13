@@ -26,8 +26,9 @@ set
   updated_at = now()
 where role = 'admin';
 
-insert into users (participant_code, name, phone_last4, password_hash, branch_id, challenge_type_id, role)
+insert into users (participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role)
 select
+  null,
   null,
   'cfable',
   null,
@@ -39,9 +40,16 @@ where not exists (
   select 1 from users where role = 'admin'
 );
 
-insert into users (participant_code, name, phone_last4, password_hash, branch_id, challenge_type_id, role)
+update users
+set
+  username = 'runner123',
+  updated_at = now()
+where participant_code = 'ARC-123456';
+
+insert into users (participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role)
 select
   'ARC-123456',
+  'runner123',
   '김러너',
   '1234',
   'scrypt:5b8c1844ca5e6f7a98fce894b5fc2844:ca635a637b6b85fcbd71f4b39664f4e3bfa47a164822453cf9195780a9a9f203305a5a24ba6b967fd82c045caf2aceaa06ff901f44c75d7e4c6e032e8ee0d26b',

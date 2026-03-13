@@ -1,16 +1,22 @@
 export function validateSignupInput({
+  username,
   name,
   phoneLast4,
   password,
   branchId,
   challengeTypeId
 }: {
+  username: string;
   name: string;
   phoneLast4: string;
   password: string;
   branchId: string;
   challengeTypeId: string;
 }) {
+  if (!/^[a-zA-Z0-9_]{4,20}$/.test(username.trim())) {
+    throw new Error("아이디는 영문, 숫자, 밑줄만 사용해 4~20자로 입력해주세요.");
+  }
+
   if (name.trim().length < 2) {
     throw new Error("이름은 2자 이상 입력해주세요.");
   }
@@ -32,9 +38,9 @@ export function validateSignupInput({
   }
 }
 
-export function validateParticipantLoginInput(participantCode: string, password: string) {
-  if (!participantCode.trim()) {
-    throw new Error("참가자 코드를 입력해주세요.");
+export function validateParticipantLoginInput(username: string, password: string) {
+  if (!username.trim()) {
+    throw new Error("아이디를 입력해주세요.");
   }
 
   if (!password) {

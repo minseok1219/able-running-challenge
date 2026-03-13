@@ -23,7 +23,7 @@ export default async function AdminParticipantsPage() {
                   <div>
                     <p className="font-semibold">{participant.name}</p>
                     <p className="mt-1 text-sm text-slate-600">
-                      {participant.participantCode} · {participant.branchName} · {participant.challengeName}
+                      @{participant.username} · {participant.participantCode} · {participant.branchName} · {participant.challengeName}
                     </p>
                   </div>
                   <div className="text-right text-sm">

@@ -22,6 +22,7 @@ export type ChallengeType = {
 export type UserRow = {
   id: string;
   participant_code: string | null;
+  username: string | null;
   name: string;
   phone_last4: string | null;
   password_hash: string;
@@ -46,7 +47,7 @@ export type RecordRow = {
   warning_reason: string | null;
   created_at: string;
   updated_at: string;
-  users?: Pick<UserRow, "id" | "name" | "participant_code"> & {
+  users?: Pick<UserRow, "id" | "name" | "participant_code" | "username"> & {
     branches?: Pick<Branch, "name" | "code"> | null;
     challenge_types?: Pick<ChallengeType, "name" | "code" | "target_distance_m"> | null;
   };
@@ -56,6 +57,7 @@ export type SessionUser = {
   id: string;
   role: UserRole;
   name: string;
+  username: string | null;
   participantCode: string | null;
 };
 
