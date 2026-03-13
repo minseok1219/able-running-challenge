@@ -1,6 +1,6 @@
 import "./globals.css";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -8,8 +8,23 @@ import type { ReactNode } from "react";
 import { PublicNav } from "@/components/navigation";
 
 export const metadata: Metadata = {
-  title: "ABLE RUNNING CHALLENGE MVP",
-  description: "ABLE RUNNING CHALLENGE 운영용 MVP"
+  title: "ARC",
+  description: "ABLE RUNNING CHALLENGE 운영용 MVP",
+  applicationName: "ARC",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/able-logo.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/able-logo.png", sizes: "180x180", type: "image/png" }]
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ARC"
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#eef4f7"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
