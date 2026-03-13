@@ -17,7 +17,10 @@ export default async function SignupPage({
   const successCode = params.success ? params.participantCode : undefined;
 
   return (
-    <AppShell title="참가자 가입" description="가입 시 아이디를 만들고, 완료 후 participant_code가 즉시 발급됩니다.">
+    <AppShell
+      title="참가자 가입"
+      description="러닝 챌린지에 참여하는 CrossFit ABLE 회원만 가입 가능합니다."
+    >
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Panel title="가입 정보 입력">
@@ -42,9 +45,10 @@ export default async function SignupPage({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-600">
-              가입이 완료되면 이 영역에 발급된 participant_code가 표시됩니다.
-            </p>
+            <div className="grid gap-3 text-sm text-slate-600">
+              <p>가입 후에는 만든 아이디와 비밀번호로 바로 로그인할 수 있습니다.</p>
+              <p>participant_code는 가입 완료 후 운영 확인용으로 함께 안내됩니다.</p>
+            </div>
           )}
         </Panel>
       </div>
