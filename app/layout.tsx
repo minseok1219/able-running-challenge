@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   applicationName: "ARC",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/able-logo.png", sizes: "512x512", type: "image/png" }],
-    apple: [{ url: "/able-logo.png", sizes: "180x180", type: "image/png" }]
+    icon: [{ url: "/able-app-icon.png", sizes: "512x512", type: "image/png" }],
+    apple: [{ url: "/able-app-icon.png", sizes: "180x180", type: "image/png" }]
   },
   appleWebApp: {
     capable: true,
