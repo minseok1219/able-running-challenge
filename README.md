@@ -2,6 +2,10 @@
 
 Next.js + TypeScript + Tailwind CSS + Supabase(PostgreSQL) + Recharts + Vercel 기준으로 구성한 운영형 MVP입니다.
 
+배포 주소
+
+- [https://able-running-challenge.vercel.app](https://able-running-challenge.vercel.app)
+
 ## 1. 구현 계획 요약
 
 1. Supabase에 스키마와 시드 데이터를 적용합니다.
@@ -59,8 +63,13 @@ types
 
 기본 계정
 
-- 참가자: `ARC-123456 / Runner1234!`
-- 관리자: `admin / Admin1234!`
+- 참가자: `runner123 / Runner1234!`
+- 관리자: `cfable / able1234!`
+
+참고
+
+- 참가자 로그인은 `participant_code`가 아니라 `아이디(username)` 기준입니다.
+- `participant_code`는 가입 완료 후 발급되는 운영용 식별값으로 유지됩니다.
 
 ## 5. 핵심 유틸 함수 설계
 
@@ -72,6 +81,14 @@ types
 ## 6. 페이지별 구현 코드
 
 각 페이지는 `app` 하위 경로에 구현되어 있으며, 참가자와 관리자 영역은 서버 측 권한 확인 후 렌더링됩니다.
+
+현재 운영 기준 핵심 기능
+
+- 참가자 가입 시 `아이디(username)` 직접 입력
+- 참가자 로그인 시 `아이디 + 비밀번호` 사용
+- 가입 완료 후 `participant_code` 자동 발급
+- 관리자에서 참가자 `비활성화/재활성화` 가능
+- 비활성화된 참가자는 로그인 불가, 리더보드 제외
 
 ## 7. 권한 처리 방식
 
@@ -93,18 +110,45 @@ cp .env.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...
 SESSION_SECRET=...
+ALLOW_LOCAL_CHALLENGE_TESTING=true
 ```
 
 Supabase SQL editor에서 아래 순서로 실행합니다.
 
 1. [schema.sql](/Users/leo/Documents/Playground/supabase/schema.sql)
 2. [seed.sql](/Users/leo/Documents/Playground/supabase/seed.sql)
+3. username 로그인 구조를 반영하려면 [20260313_add_participant_username.sql](/Users/leo/Documents/Playground/supabase/migrations/20260313_add_participant_username.sql)
 
 그 다음 실행합니다.
 
 ```bash
 npm run dev
 ```
+
+Vercel 배포 환경변수
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+SESSION_SECRET=...
+ALLOW_LOCAL_CHALLENGE_TESTING=false
+```
+
+운영 체크 포인트
+
+1. 참가자 가입에서 `아이디` 입력칸이 보여야 합니다.
+2. 참가자 로그인은 `/login` 에서 `아이디 + 비밀번호`로 진행합니다.
+3. 관리자 로그인은 `/admin/login` 에서 진행합니다.
+4. 관리자 `참가자 목록`에서 참가자 비활성화/재활성화가 가능합니다.
+5. approved 기록만 대시보드, 차트, 리더보드에 반영됩니다.
+
+운영 절차 요약
+
+1. 참가자 가입
+2. participant_code 자동 발급 확인
+3. 참가자 기록 입력
+4. 관리자에서 이상 기록 검토
+5. 필요 시 참가자 비활성화
 
 ## 9. 남은 개선 포인트
 

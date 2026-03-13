@@ -13,7 +13,7 @@ export default async function HomePage() {
   return (
     <AppShell
       title=""
-      description="가입, 기록 입력, 자동 판정, 리더보드, 관리자 운영까지 한 흐름으로 연결된 1차 버전입니다."
+      description="매일의 한 걸음이, 목표 완주를 만듭니다."
       actions={
         <>
           <ButtonLink href="/signup">참가자 가입</ButtonLink>
