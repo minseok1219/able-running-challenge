@@ -1,6 +1,7 @@
 import type { Branch, ChallengeType, RecordRow } from "@/types/db";
 
 import { Input, Select, SubmitButton, Textarea } from "@/components/ui";
+import { getChallengeResetDate, shouldResetPreChallengeRecords } from "@/lib/calculations/challenge";
 import { formatDistanceNumber, formatPace } from "@/lib/utils/format";
 
 export function SignupForm({
@@ -82,7 +83,7 @@ export function RecordForm({
         name="run_date"
         type="date"
         defaultValue={record?.run_date}
-        min={challenge.start_date}
+        min={shouldResetPreChallengeRecords(challenge) ? challenge.start_date : undefined}
         max={challenge.end_date}
         required
       />

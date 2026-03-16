@@ -2,7 +2,7 @@ import { DistanceCharts } from "@/components/charts";
 import { ParticipantNav } from "@/components/navigation";
 import { AppShell, ButtonLink, EmptyState, MetricCard, Panel, StatusBadge } from "@/components/ui";
 import { requireRole, getCurrentUserRow } from "@/lib/auth/server";
-import { buildDailyChart, buildWeeklyChart } from "@/lib/calculations/challenge";
+import { buildDailyChartForChallenge, buildWeeklyChartForChallenge } from "@/lib/calculations/challenge";
 import { getParticipantDashboard } from "@/lib/supabase/queries";
 import {
   formatDate,
@@ -65,7 +65,10 @@ export default async function DashboardPage() {
         )}
       </Panel>
       <Panel title="차트">
-        <DistanceCharts daily={buildDailyChart(records)} weekly={buildWeeklyChart(records)} />
+        <DistanceCharts
+          daily={buildDailyChartForChallenge(records, user.challenge_types!)}
+          weekly={buildWeeklyChartForChallenge(records, user.challenge_types!)}
+        />
       </Panel>
     </AppShell>
   );

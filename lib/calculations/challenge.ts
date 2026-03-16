@@ -2,6 +2,31 @@ import { allowLocalChallengeTesting } from "@/lib/config/runtime";
 import { getTodayDateString } from "@/lib/utils/format";
 import type { ChartPoint, ChallengeType, DashboardSummary, RecordRow, RecordStatus } from "@/types/db";
 
+function addDays(dateString: string, days: number) {
+  const date = new Date(`${dateString}T00:00:00+09:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+export function getChallengeResetDate(challenge: Pick<ChallengeType, "start_date">) {
+  return addDays(challenge.start_date, -1);
+}
+
+export function shouldResetPreChallengeRecords(challenge: Pick<ChallengeType, "start_date">) {
+  return getTodayDateString() >= getChallengeResetDate(challenge);
+}
+
+export function filterRecordsForActiveChallenge<T extends Pick<RecordRow, "run_date" | "status">>(
+  records: T[],
+  challenge: Pick<ChallengeType, "start_date">
+) {
+  if (!shouldResetPreChallengeRecords(challenge)) {
+    return records;
+  }
+
+  return records.filter((record) => record.run_date >= challenge.start_date);
+}
+
 export function evaluateRecordStatus({
   runDate,
   distanceM,
@@ -29,7 +54,14 @@ export function evaluateRecordStatus({
     return { status: "rejected", warningReason: "미래 날짜 기록" };
   }
 
-  if (runDate < challenge.start_date || runDate > challenge.end_date) {
+  const resetDate = getChallengeResetDate(challenge);
+  const shouldEnforceChallengeWindow = getTodayDateString() >= resetDate;
+
+  if (runDate > challenge.end_date) {
+    return { status: "rejected", warningReason: "챌린지 기간 외 기록" };
+  }
+
+  if (shouldEnforceChallengeWindow && runDate < challenge.start_date) {
     return { status: "rejected", warningReason: "챌린지 기간 외 기록" };
   }
 
@@ -48,11 +80,12 @@ export function calculateDashboardSummary(
   records: RecordRow[],
   challenge: Pick<ChallengeType, "target_distance_m" | "start_date" | "end_date">
 ): DashboardSummary {
-  const approvedRecords = records.filter((record) => record.status === "approved");
+  const scopedRecords = filterRecordsForActiveChallenge(records, challenge);
+  const approvedRecords = scopedRecords.filter((record) => record.status === "approved");
   const approvedDistanceM = approvedRecords.reduce((sum, record) => sum + record.distance_m, 0);
   const approvedCount = approvedRecords.length;
-  const warningCount = records.filter((record) => record.status === "warning").length;
-  const rejectedCount = records.filter((record) => record.status === "rejected").length;
+  const warningCount = scopedRecords.filter((record) => record.status === "warning").length;
+  const rejectedCount = scopedRecords.filter((record) => record.status === "rejected").length;
   const progress = approvedDistanceM / challenge.target_distance_m;
   const remainingDistanceM = Math.max(0, challenge.target_distance_m - approvedDistanceM);
 
@@ -96,6 +129,13 @@ export function buildDailyChart(records: RecordRow[]): ChartPoint[] {
     .map(([label, distance]) => ({ label, distanceKm: Number((distance / 1000).toFixed(1)) }));
 }
 
+export function buildDailyChartForChallenge(
+  records: RecordRow[],
+  challenge: Pick<ChallengeType, "start_date">
+) {
+  return buildDailyChart(filterRecordsForActiveChallenge(records, challenge) as RecordRow[]);
+}
+
 export function buildWeeklyChart(records: RecordRow[]): ChartPoint[] {
   const map = new Map<string, number>();
 
@@ -112,4 +152,11 @@ export function buildWeeklyChart(records: RecordRow[]): ChartPoint[] {
   return [...map.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([label, distance]) => ({ label, distanceKm: Number((distance / 1000).toFixed(1)) }));
+}
+
+export function buildWeeklyChartForChallenge(
+  records: RecordRow[],
+  challenge: Pick<ChallengeType, "start_date">
+) {
+  return buildWeeklyChart(filterRecordsForActiveChallenge(records, challenge) as RecordRow[]);
 }

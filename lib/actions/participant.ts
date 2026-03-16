@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireRole, getCurrentUserRow } from "@/lib/auth/server";
-import { evaluateRecordStatus } from "@/lib/calculations/challenge";
+import { evaluateRecordStatus, getChallengeResetDate } from "@/lib/calculations/challenge";
 import { allowLocalChallengeTesting } from "@/lib/config/runtime";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { getParticipantRecords } from "@/lib/supabase/queries";
@@ -21,7 +21,10 @@ function validateRecordDate(runDate: string, challengeStart: string, challengeEn
     throw new Error("미래 날짜는 입력할 수 없습니다.");
   }
 
-  if (runDate < challengeStart || runDate > challengeEnd) {
+  const resetDate = getChallengeResetDate({ start_date: challengeStart });
+  const shouldEnforceChallengeWindow = getTodayDateString() >= resetDate;
+
+  if (runDate > challengeEnd || (shouldEnforceChallengeWindow && runDate < challengeStart)) {
     throw new Error("챌린지 기간 내 날짜만 입력할 수 있습니다.");
   }
 }

@@ -1,6 +1,6 @@
 import { cache } from "react";
 
-import { calculateDashboardSummary } from "@/lib/calculations/challenge";
+import { calculateDashboardSummary, filterRecordsForActiveChallenge } from "@/lib/calculations/challenge";
 import {
   fallbackBranches,
   fallbackChallengeTypes,
@@ -94,10 +94,12 @@ export async function getParticipantDashboard(user: UserRow) {
     throw new Error("챌린지 정보가 없습니다.");
   }
 
+  const scopedRecords = filterRecordsForActiveChallenge(records, challenge);
+
   return {
     records,
     summary: calculateDashboardSummary(records, challenge),
-    recentRecords: records.slice(0, 5)
+    recentRecords: scopedRecords.slice(0, 5)
   };
 }
 
@@ -117,7 +119,7 @@ export async function getLeaderboard({
     const query = supabase
       .from("users")
       .select(
-        "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m), records(distance_m, status)"
+        "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date), records(distance_m, status, run_date)"
       )
       .eq("role", "participant")
       .eq("is_active", true);
@@ -132,10 +134,13 @@ export async function getLeaderboard({
       .map((row) => {
         const branch = firstOrNull(row.branches);
         const challenge = firstOrNull(row.challenge_types);
-        const approvedDistanceM = (row.records ?? [])
+        const activeRecords = filterRecordsForActiveChallenge((row.records ?? []) as RecordRow[], {
+          start_date: challenge?.start_date ?? "9999-12-31"
+        });
+        const approvedDistanceM = activeRecords
           .filter((record: { status: string }) => record.status === "approved")
           .reduce((sum: number, record: { distance_m: number }) => sum + record.distance_m, 0);
-        const warningCount = (row.records ?? []).filter(
+        const warningCount = activeRecords.filter(
           (record: { status: string }) => record.status === "warning"
         ).length;
         const targetDistanceM = challenge?.target_distance_m ?? 1;
@@ -172,7 +177,7 @@ export async function getAdminParticipants() {
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, name, username, participant_code, role, is_active, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date), records(distance_m, status)"
+      "id, name, username, participant_code, role, is_active, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date), records(distance_m, status, run_date)"
     )
     .eq("role", "participant")
     .order("created_at", { ascending: false });
@@ -184,7 +189,9 @@ export async function getAdminParticipants() {
   return data.map((row) => {
     const branch = firstOrNull(row.branches);
     const challenge = firstOrNull(row.challenge_types);
-    const records = (row.records ?? []) as Pick<RecordRow, "distance_m" | "status">[];
+    const records = filterRecordsForActiveChallenge((row.records ?? []) as RecordRow[], {
+      start_date: challenge?.start_date ?? "9999-12-31"
+    });
     const approvedDistanceM = records
       .filter((record) => record.status === "approved")
       .reduce((sum, record) => sum + record.distance_m, 0);
@@ -240,10 +247,12 @@ export async function getAdminOverview() {
     await Promise.all([
       supabase
         .from("users")
-        .select("id, role, branches:branch_id(name), challenge_types:challenge_type_id(name)")
+        .select("id, role, branches:branch_id(name), challenge_types:challenge_type_id(name, start_date)")
         .eq("role", "participant")
         .eq("is_active", true),
-      supabase.from("records").select("status")
+      supabase
+        .from("records")
+        .select("status, run_date, users!inner(challenge_types:challenge_type_id!inner(start_date))")
     ]);
 
   if (userError || recordError || !users || !records) {
@@ -262,12 +271,32 @@ export async function getAdminOverview() {
     return acc;
   }, {});
 
+  const scopedRecords = records.filter((record) => {
+    const userRelation = firstOrNull(record.users);
+    const challenge = firstOrNull(userRelation?.challenge_types);
+    if (!challenge) {
+      return false;
+    }
+
+    return filterRecordsForActiveChallenge(
+      [
+        {
+          run_date: record.run_date,
+          status: record.status
+        }
+      ],
+      {
+      start_date: challenge.start_date
+      }
+    ).length > 0;
+  });
+
   return {
     participantCount: users.length,
     branchCounts,
     challengeCounts,
-    approvedCount: records.filter((record) => record.status === "approved").length,
-    warningCount: records.filter((record) => record.status === "warning").length,
-    rejectedCount: records.filter((record) => record.status === "rejected").length
+    approvedCount: scopedRecords.filter((record) => record.status === "approved").length,
+    warningCount: scopedRecords.filter((record) => record.status === "warning").length,
+    rejectedCount: scopedRecords.filter((record) => record.status === "rejected").length
   };
 }
