@@ -2,6 +2,7 @@ import { RecordForm } from "@/components/forms";
 import { ParticipantNav } from "@/components/navigation";
 import { AppShell, AlertMessage, Panel } from "@/components/ui";
 import { getEditableRecord, updateRecordAction } from "@/lib/actions/participant";
+import { formatDate, formatDistanceKm, formatPace } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +37,25 @@ export default async function EditRecordPage({
           )}
         </Panel>
         <Panel title="현재 기록">
-          <div className="grid gap-2 text-sm text-slate-600">
-            <p>날짜: {record.run_date}</p>
-            <p>거리: {(record.distance_m / 1000).toFixed(record.distance_m % 1000 === 0 ? 0 : 1)}km</p>
-            <p>페이스: {Math.floor(record.pace_sec_per_km / 60)}:{String(record.pace_sec_per_km % 60).padStart(2, "0")}/km</p>
+          <div className="grid gap-3">
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium text-slate-500">날짜</p>
+              <p className="mt-1 text-base font-semibold text-slate-900">{formatDate(record.run_date)}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium text-slate-500">거리</p>
+              <p className="mt-1 text-base font-semibold text-slate-900">{formatDistanceKm(record.distance_m)}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium text-slate-500">평균 페이스</p>
+              <p className="mt-1 text-base font-semibold text-slate-900">{formatPace(record.pace_sec_per_km)}/km</p>
+            </div>
+            {record.note ? (
+              <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                <p className="text-xs font-medium text-slate-500">메모</p>
+                <p className="mt-1 text-sm text-slate-700">{record.note}</p>
+              </div>
+            ) : null}
           </div>
         </Panel>
       </div>

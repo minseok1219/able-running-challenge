@@ -15,7 +15,7 @@ export default async function AdminOverviewPage() {
         <MetricCard label="전체 참가자 수" value={String(overview.participantCount)} />
         <MetricCard label="승인 기록 수" value={String(overview.approvedCount)} />
         <MetricCard label="경고 기록 수" value={String(overview.warningCount)} />
-        <MetricCard label="반려 기록 수" value={String(overview.rejectedCount)} />
+        <MetricCard label="거절 기록 수" value={String(overview.rejectedCount)} />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="지점별 참가자 수">

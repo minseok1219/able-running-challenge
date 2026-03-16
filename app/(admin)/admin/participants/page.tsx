@@ -44,7 +44,7 @@ export default async function AdminParticipantsPage({
                       {participant.name}
                       {!participant.isActive ? (
                         <span className="ml-2 inline-flex rounded-full bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-700">
-                          inactive
+                          비활성
                         </span>
                       ) : null}
                     </p>

@@ -61,7 +61,7 @@ export default async function LeaderboardPage({
                     <p className="text-sm text-slate-500">#{index + 1}</p>
                     <p className="mt-1 text-lg font-semibold">{entry.name}</p>
                     <p className="text-sm text-slate-600">
-                      {entry.branchName} · {entry.challengeName}
+                      {entry.participantCode} · {entry.branchName} · {entry.challengeName}
                     </p>
                   </div>
                   <div className="text-right">
