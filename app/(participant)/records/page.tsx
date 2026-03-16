@@ -29,7 +29,7 @@ export default async function RecordsPage({
         </>
       }
     >
-      <Panel title="안내">
+      <Panel title="안내" description="최근 기록과 수정 가능 여부를 한눈에 확인할 수 있습니다.">
         <AlertMessage message={params.error} />
         <AlertMessage
           type="success"
@@ -44,30 +44,54 @@ export default async function RecordsPage({
         ) : (
           <div className="grid gap-3">
             {records.map((record) => (
-              <div key={record.id} className="rounded-3xl bg-slate-50 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="grid gap-1">
-                    <p className="font-semibold">{formatDate(record.run_date)}</p>
-                    <p className="text-sm text-slate-600">
-                      {formatDistanceKm(record.distance_m)} · {formatPace(record.pace_sec_per_km)}/km
+              <div key={record.id} className="rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-lg font-semibold">{formatDate(record.run_date)}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {isEditableToday(record.created_at) ? "오늘까지 수정 가능" : "수정 기간 종료"}
                     </p>
-                    {record.note ? <p className="text-sm text-slate-600">메모: {record.note}</p> : null}
-                    {record.warning_reason ? (
-                      <p className="text-sm text-amber-700">사유: {record.warning_reason}</p>
-                    ) : null}
                   </div>
-                  <div className="flex flex-col items-end gap-3">
+                  <div className="flex items-center gap-2">
                     <StatusBadge status={record.status} />
                     {isEditableToday(record.created_at) ? (
                       <Link
                         href={`/records/${record.id}/edit`}
-                        className="text-sm font-medium text-accent underline-offset-4 hover:underline"
+                        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-slate-400"
                       >
                         수정
                       </Link>
                     ) : null}
                   </div>
                 </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white px-4 py-3">
+                    <p className="text-xs font-medium text-slate-500">거리</p>
+                    <p className="mt-1 text-base font-semibold text-slate-900">
+                      {formatDistanceKm(record.distance_m)}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-white px-4 py-3">
+                    <p className="text-xs font-medium text-slate-500">평균 페이스</p>
+                    <p className="mt-1 text-base font-semibold text-slate-900">
+                      {formatPace(record.pace_sec_per_km)}/km
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-white px-4 py-3">
+                    <p className="text-xs font-medium text-slate-500">상태 메모</p>
+                    <p className="mt-1 text-sm font-medium text-slate-700">
+                      {record.warning_reason ?? "정상 기록"}
+                    </p>
+                  </div>
+                </div>
+                {record.note ? (
+                  <div className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
+                    메모: {record.note}
+                  </div>
+                ) : null}
+                {record.warning_reason ? (
+                  <p className="mt-3 text-sm text-amber-700">사유: {record.warning_reason}</p>
+                ) : null}
               </div>
             ))}
           </div>
