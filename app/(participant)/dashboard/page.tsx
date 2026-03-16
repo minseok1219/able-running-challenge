@@ -38,11 +38,47 @@ export default async function DashboardPage() {
         </>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="누적 거리" value={formatDistanceKm(summary.approvedDistanceM)} />
+      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="rounded-[28px] bg-gradient-to-br from-ink via-slate-800 to-slate-700 p-6 text-white shadow-panel">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-200">
+            Challenge Summary
+          </p>
+          <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="text-sm text-slate-200">현재 누적 승인 거리</p>
+              <h2 className="mt-2 text-4xl font-semibold sm:text-5xl">
+                {formatDistanceKm(summary.approvedDistanceM)}
+              </h2>
+              <p className="mt-3 text-sm text-slate-200">
+                목표 {formatDistanceKm(user.challenge_types!.target_distance_m)} 중{" "}
+                {formatPercent(summary.progress)} 진행 중입니다.
+              </p>
+            </div>
+            <div className="rounded-[24px] bg-white/10 px-5 py-4 backdrop-blur">
+              <p className="text-sm text-slate-200">남은 거리</p>
+              <p className="mt-2 text-2xl font-semibold text-white">
+                {formatDistanceKm(summary.remainingDistanceM)}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <MetricCard
+            label="오늘 기준 앞섬/뒤처짐"
+            value={formatDelta(summary.deltaDistanceM)}
+            hint="권장 누적 거리 대비 현재 위치"
+          />
+          <MetricCard
+            label="기록 상태 요약"
+            value={`${summary.approvedCount}건 승인`}
+            hint={`경고 ${summary.warningCount}건 · 거절 ${summary.rejectedCount}건`}
+          />
+        </div>
+      </section>
+      <div className="grid gap-4 sm:grid-cols-3">
         <MetricCard label="진행률" value={formatPercent(summary.progress)} />
         <MetricCard label="남은 거리" value={formatDistanceKm(summary.remainingDistanceM)} />
-        <MetricCard label="오늘 기준 앞섬/뒤처짐" value={formatDelta(summary.deltaDistanceM)} />
+        <MetricCard label="누적 승인 수" value={String(summary.approvedCount)} />
       </div>
       <Panel title="상태 요약">
         <div className="grid gap-4 sm:grid-cols-3">
