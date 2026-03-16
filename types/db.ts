@@ -90,3 +90,19 @@ export type ChartPoint = {
   label: string;
   distanceKm: number;
 };
+
+export type BadgeProgress = {
+  code:
+    | "first_upload"
+    | "distance_10km"
+    | "distance_25km"
+    | "distance_50km"
+    | "streak_7days"
+    | "half_finish"
+    | "challenge_finish";
+  name: string;
+  description: string;
+  achieved: boolean;
+  unlockedAt: string | null;
+  progressText: string;
+};

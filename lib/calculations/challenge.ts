@@ -1,6 +1,13 @@
 import { allowLocalChallengeTesting } from "@/lib/config/runtime";
 import { getTodayDateString } from "@/lib/utils/format";
-import type { ChartPoint, ChallengeType, DashboardSummary, RecordRow, RecordStatus } from "@/types/db";
+import type {
+  BadgeProgress,
+  ChartPoint,
+  ChallengeType,
+  DashboardSummary,
+  RecordRow,
+  RecordStatus
+} from "@/types/db";
 
 function addDays(dateString: string, days: number) {
   const date = new Date(`${dateString}T00:00:00+09:00`);
@@ -159,4 +166,137 @@ export function buildWeeklyChartForChallenge(
   challenge: Pick<ChallengeType, "start_date">
 ) {
   return buildWeeklyChart(filterRecordsForActiveChallenge(records, challenge) as RecordRow[]);
+}
+
+function getApprovedRecordsForChallenge(
+  records: RecordRow[],
+  challenge: Pick<ChallengeType, "start_date">
+) {
+  return filterRecordsForActiveChallenge(records, challenge).filter((record) => record.status === "approved");
+}
+
+function getCumulativeUnlockDate(records: RecordRow[], targetDistanceM: number) {
+  let total = 0;
+
+  for (const record of records) {
+    total += record.distance_m;
+    if (total >= targetDistanceM) {
+      return record.run_date;
+    }
+  }
+
+  return null;
+}
+
+function getSevenDayStreakStatus(records: RecordRow[]) {
+  const uniqueDates = [...new Set(records.map((record) => record.run_date))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  let maxStreak = 0;
+  let currentStreak = 0;
+  let previousDate: string | null = null;
+  let unlockedAt: string | null = null;
+
+  for (const date of uniqueDates) {
+    if (!previousDate) {
+      currentStreak = 1;
+    } else {
+      const previous = new Date(`${previousDate}T00:00:00+09:00`);
+      const current = new Date(`${date}T00:00:00+09:00`);
+      const diffDays = Math.round((current.getTime() - previous.getTime()) / 86400000);
+      currentStreak = diffDays === 1 ? currentStreak + 1 : 1;
+    }
+
+    if (currentStreak > maxStreak) {
+      maxStreak = currentStreak;
+    }
+
+    if (currentStreak >= 7 && !unlockedAt) {
+      unlockedAt = date;
+    }
+
+    previousDate = date;
+  }
+
+  return {
+    maxStreak,
+    unlockedAt
+  };
+}
+
+export function buildBadgeProgress(
+  records: RecordRow[],
+  challenge: Pick<ChallengeType, "name" | "target_distance_m" | "start_date">
+): BadgeProgress[] {
+  const approvedRecords = getApprovedRecordsForChallenge(records, challenge).sort((a, b) => {
+    if (a.run_date === b.run_date) {
+      return a.created_at.localeCompare(b.created_at);
+    }
+
+    return a.run_date.localeCompare(b.run_date);
+  });
+  const approvedDistanceM = approvedRecords.reduce((sum, record) => sum + record.distance_m, 0);
+  const halfTargetDistanceM = Math.ceil(challenge.target_distance_m / 2);
+  const streakStatus = getSevenDayStreakStatus(approvedRecords);
+  const firstApprovedDate = approvedRecords[0]?.run_date ?? null;
+
+  return [
+    {
+      code: "first_upload",
+      name: "첫 업로드 완료",
+      description: `${challenge.name} 첫 approved 기록을 등록했습니다.`,
+      achieved: Boolean(firstApprovedDate),
+      unlockedAt: firstApprovedDate,
+      progressText: firstApprovedDate ? "획득 완료" : "첫 approved 기록 등록 전"
+    },
+    {
+      code: "distance_10km",
+      name: "첫 10km 달성",
+      description: "approved 누적 거리 10km를 달성합니다.",
+      achieved: approvedDistanceM >= 10000,
+      unlockedAt: getCumulativeUnlockDate(approvedRecords, 10000),
+      progressText: `${Math.min((approvedDistanceM / 1000), 10).toFixed(1)} / 10.0km`
+    },
+    {
+      code: "distance_25km",
+      name: "25km 달성",
+      description: "approved 누적 거리 25km를 달성합니다.",
+      achieved: approvedDistanceM >= 25000,
+      unlockedAt: getCumulativeUnlockDate(approvedRecords, 25000),
+      progressText: `${Math.min((approvedDistanceM / 1000), 25).toFixed(1)} / 25.0km`
+    },
+    {
+      code: "distance_50km",
+      name: "50km 달성",
+      description: "approved 누적 거리 50km를 달성합니다.",
+      achieved: approvedDistanceM >= 50000,
+      unlockedAt: getCumulativeUnlockDate(approvedRecords, 50000),
+      progressText: `${Math.min((approvedDistanceM / 1000), 50).toFixed(1)} / 50.0km`
+    },
+    {
+      code: "streak_7days",
+      name: "7일 연속 인증",
+      description: "approved 기록으로 7일 연속 인증합니다.",
+      achieved: streakStatus.maxStreak >= 7,
+      unlockedAt: streakStatus.unlockedAt,
+      progressText: `${Math.min(streakStatus.maxStreak, 7)} / 7일 연속`
+    },
+    {
+      code: "half_finish",
+      name: "절반 달성",
+      description: `${challenge.name} 목표 거리의 절반을 달성합니다.`,
+      achieved: approvedDistanceM >= halfTargetDistanceM,
+      unlockedAt: getCumulativeUnlockDate(approvedRecords, halfTargetDistanceM),
+      progressText: `${Math.min(approvedDistanceM / 1000, halfTargetDistanceM / 1000).toFixed(1)} / ${(halfTargetDistanceM / 1000).toFixed(1)}km`
+    },
+    {
+      code: "challenge_finish",
+      name: "완주 성공",
+      description: `${challenge.name} 목표 거리를 완주합니다.`,
+      achieved: approvedDistanceM >= challenge.target_distance_m,
+      unlockedAt: getCumulativeUnlockDate(approvedRecords, challenge.target_distance_m),
+      progressText: `${Math.min(approvedDistanceM / 1000, challenge.target_distance_m / 1000).toFixed(1)} / ${(challenge.target_distance_m / 1000).toFixed(1)}km`
+    }
+  ];
 }
