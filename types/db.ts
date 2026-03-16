@@ -106,3 +106,17 @@ export type BadgeProgress = {
   unlockedAt: string | null;
   progressText: string;
 };
+
+export type AdminActionLog = {
+  id: string;
+  actionType: AdminActionType;
+  previousStatus: RecordStatus | null;
+  newStatus: RecordStatus | null;
+  memo: string | null;
+  createdAt: string;
+  adminName: string;
+  runDate: string | null;
+  participantName: string;
+  participantUsername: string | null;
+  participantCode: string | null;
+};

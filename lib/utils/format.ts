@@ -17,6 +17,16 @@ export function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+export function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
+
 export function formatDistanceKm(distanceM: number) {
   return `${(distanceM / 1000).toFixed(distanceM % 1000 === 0 ? 0 : 1)}km`;
 }

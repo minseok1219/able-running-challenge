@@ -7,7 +7,14 @@ import {
   hasSupabaseEnv
 } from "@/lib/config/runtime";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
-import type { Branch, ChallengeType, LeaderboardEntry, RecordRow, UserRow } from "@/types/db";
+import type {
+  AdminActionLog,
+  Branch,
+  ChallengeType,
+  LeaderboardEntry,
+  RecordRow,
+  UserRow
+} from "@/types/db";
 
 function firstOrNull<T>(value: T | T[] | null | undefined): T | null {
   if (Array.isArray(value)) {
@@ -239,6 +246,41 @@ export async function getAdminRecords() {
         : undefined
     };
   }) as unknown as RecordRow[];
+}
+
+export async function getRecentAdminActions(limit = 20) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("admin_actions")
+    .select(
+      "id, action_type, previous_status, new_status, memo, created_at, admin_user:admin_user_id(name), records:record_id(id, run_date, users:user_id(name, username, participant_code))"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) {
+    throw new Error("관리자 작업 로그를 불러오지 못했습니다.");
+  }
+
+  return data.map((row) => {
+    const adminUser = firstOrNull(row.admin_user);
+    const record = firstOrNull(row.records);
+    const participant = firstOrNull(record?.users);
+
+    return {
+      id: row.id,
+      actionType: row.action_type,
+      previousStatus: row.previous_status,
+      newStatus: row.new_status,
+      memo: row.memo,
+      createdAt: row.created_at,
+      adminName: adminUser?.name ?? "관리자",
+      runDate: record?.run_date ?? null,
+      participantName: participant?.name ?? "알 수 없음",
+      participantUsername: participant?.username ?? null,
+      participantCode: participant?.participant_code ?? null
+    } satisfies AdminActionLog;
+  });
 }
 
 export async function getAdminOverview() {
