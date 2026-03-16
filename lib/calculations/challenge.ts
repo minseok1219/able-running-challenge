@@ -245,15 +245,15 @@ export function buildBadgeProgress(
     {
       code: "first_upload",
       name: "첫 업로드 완료",
-      description: `${challenge.name} 첫 approved 기록을 등록했습니다.`,
+      description: `${challenge.name} 첫 승인 기록을 등록했습니다.`,
       achieved: Boolean(firstApprovedDate),
       unlockedAt: firstApprovedDate,
-      progressText: firstApprovedDate ? "획득 완료" : "첫 approved 기록 등록 전"
+      progressText: firstApprovedDate ? "획득 완료" : "첫 승인 기록 등록 전"
     },
     {
       code: "distance_10km",
       name: "첫 10km 달성",
-      description: "approved 누적 거리 10km를 달성합니다.",
+      description: "승인 누적 거리 10km를 달성합니다.",
       achieved: approvedDistanceM >= 10000,
       unlockedAt: getCumulativeUnlockDate(approvedRecords, 10000),
       progressText: `${Math.min((approvedDistanceM / 1000), 10).toFixed(1)} / 10.0km`
@@ -261,7 +261,7 @@ export function buildBadgeProgress(
     {
       code: "distance_25km",
       name: "25km 달성",
-      description: "approved 누적 거리 25km를 달성합니다.",
+      description: "승인 누적 거리 25km를 달성합니다.",
       achieved: approvedDistanceM >= 25000,
       unlockedAt: getCumulativeUnlockDate(approvedRecords, 25000),
       progressText: `${Math.min((approvedDistanceM / 1000), 25).toFixed(1)} / 25.0km`
@@ -269,7 +269,7 @@ export function buildBadgeProgress(
     {
       code: "distance_50km",
       name: "50km 달성",
-      description: "approved 누적 거리 50km를 달성합니다.",
+      description: "승인 누적 거리 50km를 달성합니다.",
       achieved: approvedDistanceM >= 50000,
       unlockedAt: getCumulativeUnlockDate(approvedRecords, 50000),
       progressText: `${Math.min((approvedDistanceM / 1000), 50).toFixed(1)} / 50.0km`
@@ -277,7 +277,7 @@ export function buildBadgeProgress(
     {
       code: "streak_7days",
       name: "7일 연속 인증",
-      description: "approved 기록으로 7일 연속 인증합니다.",
+      description: "승인 기록으로 7일 연속 인증합니다.",
       achieved: streakStatus.maxStreak >= 7,
       unlockedAt: streakStatus.unlockedAt,
       progressText: `${Math.min(streakStatus.maxStreak, 7)} / 7일 연속`

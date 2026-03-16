@@ -20,7 +20,7 @@ export default async function LeaderboardPage({
   ]);
 
   return (
-    <AppShell title="리더보드" description="approved 기록만 반영됩니다.">
+    <AppShell title="리더보드" description="승인 기록만 반영됩니다.">
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
       <Panel title="필터">
         <form className="grid gap-3 sm:grid-cols-3">

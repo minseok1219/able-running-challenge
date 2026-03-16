@@ -56,7 +56,7 @@ export default async function AdminParticipantsPage({
                     <div>
                       <p>{formatDistanceKm(participant.approvedDistanceM)}</p>
                       <p className="text-slate-600">{formatPercent(participant.progress)}</p>
-                      <p className="text-amber-700">warning {participant.warningCount}건</p>
+                      <p className="text-amber-700">경고 {participant.warningCount}건</p>
                     </div>
                     <form action={toggleParticipantActiveAction}>
                       <input type="hidden" name="user_id" value={participant.id} />

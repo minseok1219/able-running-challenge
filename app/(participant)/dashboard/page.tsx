@@ -46,14 +46,14 @@ export default async function DashboardPage() {
       </div>
       <Panel title="상태 요약">
         <div className="grid gap-4 sm:grid-cols-3">
-          <MetricCard label="approved" value={String(summary.approvedCount)} />
-          <MetricCard label="warning" value={String(summary.warningCount)} />
-          <MetricCard label="rejected" value={String(summary.rejectedCount)} />
+          <MetricCard label="승인" value={String(summary.approvedCount)} />
+          <MetricCard label="경고" value={String(summary.warningCount)} />
+          <MetricCard label="거절" value={String(summary.rejectedCount)} />
         </div>
       </Panel>
       <Panel
         title={`${user.challenge_types?.name ?? "챌린지"} 마일스톤 배지`}
-        description="approved 기록 기준으로 배지 달성 여부와 다음 목표 진행 상태를 확인할 수 있습니다."
+        description="승인 기록 기준으로 배지 달성 여부와 다음 목표 진행 상태를 확인할 수 있습니다."
       >
         <div className="mb-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[28px] bg-gradient-to-br from-amber-100 via-orange-50 to-white p-5 shadow-panel">
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
             <p className="mt-2 text-sm text-slate-700">
               {latestEarnedBadge
                 ? `${latestEarnedBadge.name} 배지를 획득했습니다. 다음 목표도 이어서 도전해보세요.`
-                : "첫 approved 기록을 남기면 첫 배지가 열립니다."}
+                : "첫 승인 기록을 남기면 첫 배지가 열립니다."}
             </p>
             {latestEarnedBadge?.unlockedAt ? (
               <p className="mt-3 text-xs font-medium text-amber-800">
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                       <p className="mt-1 text-sm text-slate-600">{badge.description}</p>
                     </div>
                     <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                      className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
                         badge.achieved
                           ? "bg-amber-100 text-amber-800"
                           : "bg-white text-slate-600"

@@ -4,6 +4,12 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 import type { RecordStatus } from "@/types/db";
 
+function getStatusLabel(status: RecordStatus) {
+  if (status === "approved") return "승인";
+  if (status === "warning") return "경고";
+  return "거절";
+}
+
 export function AppShell({
   title,
   description,
@@ -217,8 +223,8 @@ export function StatusBadge({ status }: { status: RecordStatus }) {
         : "bg-rose-100 text-rose-700";
 
   return (
-    <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-semibold", classes)}>
-      {status}
+    <span className={cn("inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold", classes)}>
+      {getStatusLabel(status)}
     </span>
   );
 }

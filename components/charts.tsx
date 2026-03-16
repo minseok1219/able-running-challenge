@@ -23,8 +23,8 @@ export function DistanceCharts({
 }) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <ChartCard title="일별 approved 거리" data={daily} type="bar" />
-      <ChartCard title="주별 approved 거리" data={weekly} type="line" />
+      <ChartCard title="일별 승인 거리" data={daily} type="bar" />
+      <ChartCard title="주별 승인 거리" data={weekly} type="line" />
     </div>
   );
 }

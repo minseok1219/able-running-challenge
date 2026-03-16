@@ -49,7 +49,7 @@ export default async function HomePage() {
       <Panel title="간단 안내">
         <ul className="grid gap-3 text-sm text-slate-700">
           <li>기록 인정 기준은 최소 2km, 평균 페이스 9:00/km 이하입니다.</li>
-          <li>approved 기록만 누적 거리, 차트, 리더보드에 반영됩니다.</li>
+          <li>승인 기록만 누적 거리, 차트, 리더보드에 반영됩니다.</li>
           <li>트레드밀 기록은 인정되지 않으며 안내 페이지에서 공지됩니다.</li>
         </ul>
       </Panel>

@@ -54,9 +54,9 @@ export default async function AdminRecordsPage({
                     <input type="hidden" name="record_id" value={record.id} />
                     <p className="text-sm font-semibold">상태 변경</p>
                     <select name="status" defaultValue={record.status} className="rounded-2xl border border-slate-200 px-4 py-3">
-                      <option value="approved">approved</option>
-                      <option value="warning">warning</option>
-                      <option value="rejected">rejected</option>
+                      <option value="approved">승인</option>
+                      <option value="warning">경고</option>
+                      <option value="rejected">거절</option>
                     </select>
                     <textarea
                       name="memo"

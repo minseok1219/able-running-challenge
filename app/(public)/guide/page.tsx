@@ -14,7 +14,7 @@ export default async function GuidePage() {
       <Panel title="챌린지 설명">
         <p className="text-sm leading-6 text-slate-700">
           가입 후 지점과 챌린지 타입을 선택하고, 날짜별 러닝 기록을 직접 입력합니다. 시스템은
-          입력 즉시 자동 판정하여 approved, warning, rejected 상태를 계산합니다.
+          입력 즉시 자동 판정하여 승인, 경고, 거절 상태를 계산합니다.
         </p>
       </Panel>
       <Panel title="일정">
