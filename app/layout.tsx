@@ -24,23 +24,24 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#eef4f7"
+  themeColor: "#eef4f7",
+  viewportFit: "cover"
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      <body>
-        <div className="min-h-screen bg-mist">
-          <div className="border-b border-slate-200 bg-white/90 backdrop-blur">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <body className="overflow-x-hidden">
+        <div className="min-h-[100svh] bg-mist">
+          <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+            <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
               <Link href="/" className="flex items-center">
                 <Image
                   src="/able-logo.png"
                   alt="CrossFit ABLE"
                   width={168}
                   height={96}
-                  className="h-12 w-auto object-contain"
+                  className="h-11 w-auto object-contain sm:h-12"
                   priority
                 />
               </Link>

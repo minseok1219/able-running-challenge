@@ -11,6 +11,11 @@ body {
   font-family: "Pretendard", "Noto Sans KR", sans-serif;
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 a {
   @apply transition-colors;
 }

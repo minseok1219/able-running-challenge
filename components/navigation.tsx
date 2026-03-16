@@ -4,14 +4,14 @@ import { logoutAction } from "@/lib/actions/auth";
 import { getCurrentSession } from "@/lib/auth/server";
 
 function navItemClassName() {
-  return "inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-slate-400 hover:bg-slate-50";
+  return "inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-slate-400 hover:bg-slate-50";
 }
 
 export async function PublicNav() {
   const session = await getCurrentSession();
 
   return (
-    <nav className="flex flex-wrap gap-3 text-sm font-medium">
+    <nav className="flex w-full gap-2 overflow-x-auto pb-1 text-sm font-medium sm:w-auto sm:flex-wrap sm:justify-end sm:overflow-visible sm:pb-0">
       <Link href="/" className={navItemClassName()}>
         홈
       </Link>
@@ -58,7 +58,7 @@ export async function PublicNav() {
 
 export function ParticipantNav() {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex w-full gap-2 overflow-x-auto pb-1 sm:w-auto sm:flex-wrap sm:pb-0">
       <Link href="/dashboard" className={navItemClassName()}>
         대시보드
       </Link>
@@ -77,7 +77,7 @@ export function ParticipantNav() {
 
 export function AdminNav() {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex w-full gap-2 overflow-x-auto pb-1 sm:w-auto sm:flex-wrap sm:pb-0">
       <Link href="/admin/overview" className={navItemClassName()}>
         전체 현황
       </Link>

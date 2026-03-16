@@ -16,15 +16,15 @@ export function AppShell({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <header className="rounded-[28px] bg-white p-6 shadow-panel">
+    <main className="mx-auto flex min-h-[calc(100svh-72px)] w-full max-w-6xl flex-col gap-4 px-0 py-4 sm:gap-6 sm:px-6 sm:py-6">
+      <header className="rounded-[24px] bg-white p-5 shadow-panel sm:rounded-[28px] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-accent">ABLE RUNNING CHALLENGE</p>
-            {title ? <h1 className="mt-2 text-3xl font-semibold">{title}</h1> : null}
-            {description ? <p className="mt-2 text-sm text-slate-600">{description}</p> : null}
+            {title ? <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{title}</h1> : null}
+            {description ? <p className="mt-2 text-base text-slate-600 sm:text-sm">{description}</p> : null}
           </div>
-          {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+          {actions ? <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-3">{actions}</div> : null}
         </div>
       </header>
       {children}
@@ -44,7 +44,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-[28px] bg-white p-5 shadow-panel", className)}>
+    <section className={cn("rounded-[24px] bg-white p-5 shadow-panel sm:rounded-[28px]", className)}>
       {title ? <h2 className="text-lg font-semibold">{title}</h2> : null}
       {description ? <p className="mt-1 text-sm text-slate-600">{description}</p> : null}
       <div className={cn(title || description ? "mt-4" : "")}>{children}</div>
