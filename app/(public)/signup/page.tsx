@@ -47,7 +47,6 @@ export default async function SignupPage({
           <Panel title="가입 안내">
             <div className="grid gap-3 text-sm text-slate-600">
               <p>가입 후에는 만든 아이디와 비밀번호로 바로 로그인할 수 있습니다.</p>
-              <p>가입 완료 시 participant_code가 자동 발급됩니다.</p>
             </div>
           </Panel>
         </div>
