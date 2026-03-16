@@ -17,6 +17,24 @@ export default async function GuidePage() {
           입력 즉시 자동 판정하여 승인, 경고, 거절 상태를 계산합니다.
         </p>
       </Panel>
+      <Panel title="챌린지 혜택 안내">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-3xl bg-slate-50 p-4 text-sm">
+            <p className="font-semibold text-accent">참여 시</p>
+            <ul className="mt-3 grid gap-2 text-slate-700">
+              <li>협업 스포츠 브랜드 할인쿠폰 증정</li>
+              <li>스타트팩 제공 (아미노 바이탈 1만원 상당 제품)</li>
+            </ul>
+          </div>
+          <div className="rounded-3xl bg-slate-50 p-4 text-sm">
+            <p className="font-semibold text-accent">완주 시</p>
+            <ul className="mt-3 grid gap-2 text-slate-700">
+              <li>챌린지 완주 시 럭키드로우 자동 참여권 지급</li>
+              <li>챌린지 완주 시 완주 티셔츠 증정</li>
+            </ul>
+          </div>
+        </div>
+      </Panel>
       <Panel title="일정">
         <div className="grid gap-3">
           {challengeTypes.map((challenge) => (
@@ -36,6 +54,7 @@ export default async function GuidePage() {
           <li>하루 여러 기록 합산 가능</li>
           <li>트레드밀 기록 인정 불가</li>
           <li>트레드밀 여부는 시스템에서 검사하지 않음</li>
+          <li>참가자는 실제로 러닝한 올바른 기록만 입력해 주세요.</li>
         </ul>
       </Panel>
       <Panel title="기록 입력 방식">

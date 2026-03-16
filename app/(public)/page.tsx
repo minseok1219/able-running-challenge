@@ -90,11 +90,30 @@ export default async function HomePage() {
         </div>
       </section>
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
+      <Panel title="챌린지 참여 혜택">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-sm font-semibold tracking-[0.18em] text-accent">참여 시</p>
+            <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-700">
+              <li>협업 스포츠 브랜드 할인쿠폰 증정</li>
+              <li>스타트팩 제공 (아미노 바이탈 1만원 상당 제품)</li>
+            </ul>
+          </div>
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-sm font-semibold tracking-[0.18em] text-accent">완주 시</p>
+            <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-700">
+              <li>챌린지 완주 시 럭키드로우 자동 참여권 지급</li>
+              <li>챌린지 완주 시 완주 티셔츠 증정</li>
+            </ul>
+          </div>
+        </div>
+      </Panel>
       <Panel title="간단 안내">
         <ul className="grid gap-3 text-sm text-slate-700">
           <li>기록 인정 기준은 최소 2km, 평균 페이스 9:00/km 이하입니다.</li>
           <li>승인 기록만 누적 거리, 차트, 리더보드에 반영됩니다.</li>
           <li>트레드밀 기록은 인정되지 않으며 안내 페이지에서 공지됩니다.</li>
+          <li>참가자는 실제로 러닝한 올바른 기록만 입력해 주세요.</li>
         </ul>
       </Panel>
     </AppShell>
