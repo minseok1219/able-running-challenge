@@ -23,6 +23,9 @@ export default async function DashboardPage() {
   const user = await getCurrentUserRow(session);
   const { summary, records, recentRecords } = await getParticipantDashboard(user);
   const badgeProgress = buildBadgeProgress(records, user.challenge_types!);
+  const earnedBadges = badgeProgress.filter((badge) => badge.achieved);
+  const nextBadge = badgeProgress.find((badge) => !badge.achieved) ?? null;
+  const latestEarnedBadge = [...earnedBadges].reverse()[0] ?? null;
 
   return (
     <AppShell
@@ -52,38 +55,97 @@ export default async function DashboardPage() {
         title={`${user.challenge_types?.name ?? "챌린지"} 마일스톤 배지`}
         description="approved 기록 기준으로 배지 달성 여부와 다음 목표 진행 상태를 확인할 수 있습니다."
       >
+        <div className="mb-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-[28px] bg-gradient-to-br from-amber-100 via-orange-50 to-white p-5 shadow-panel">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+              Badge Progress
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold text-slate-900">
+              {earnedBadges.length} / {badgeProgress.length} 배지 획득
+            </h3>
+            <p className="mt-2 text-sm text-slate-700">
+              {latestEarnedBadge
+                ? `${latestEarnedBadge.name} 배지를 획득했습니다. 다음 목표도 이어서 도전해보세요.`
+                : "첫 approved 기록을 남기면 첫 배지가 열립니다."}
+            </p>
+            {latestEarnedBadge?.unlockedAt ? (
+              <p className="mt-3 text-xs font-medium text-amber-800">
+                최근 획득: {latestEarnedBadge.name} · {formatDate(latestEarnedBadge.unlockedAt)}
+              </p>
+            ) : null}
+          </div>
+          <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Next Milestone
+            </p>
+            {nextBadge ? (
+              <>
+                <h3 className="mt-3 text-xl font-semibold text-slate-900">{nextBadge.name}</h3>
+                <p className="mt-2 text-sm text-slate-600">{nextBadge.description}</p>
+                <p className="mt-4 inline-flex rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-700">
+                  {nextBadge.progressText}
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="mt-3 text-xl font-semibold text-slate-900">모든 배지 달성 완료</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  이번 챌린지 마일스톤을 모두 채웠습니다. 정말 멋진 완주입니다.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {badgeProgress.map((badge) => (
             <div
               key={badge.code}
-              className={`rounded-3xl border p-4 ${
+              className={`rounded-[28px] border p-5 shadow-sm transition-transform ${
                 badge.achieved
-                  ? "border-emerald-200 bg-emerald-50"
+                  ? "border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50"
                   : "border-slate-200 bg-slate-50"
               }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold">{badge.name}</p>
-                  <p className="mt-1 text-sm text-slate-600">{badge.description}</p>
-                </div>
-                <span
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+              <div className="flex items-start gap-4">
+                <div
+                  className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border text-2xl ${
                     badge.achieved
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-white text-slate-600"
+                      ? "border-amber-300 bg-amber-100 text-amber-700"
+                      : "border-slate-200 bg-white text-slate-400"
                   }`}
                 >
-                  {badge.achieved ? "획득" : "진행 중"}
-                </span>
-              </div>
-              <div className="mt-4 grid gap-1">
-                <p className="text-sm font-medium text-slate-700">{badge.progressText}</p>
-                <p className="text-xs text-slate-500">
-                  {badge.unlockedAt
-                    ? `달성일 ${formatDate(badge.unlockedAt)}`
-                    : "아직 달성 전"}
-                </p>
+                  {badge.achieved ? "★" : "○"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{badge.name}</p>
+                      <p className="mt-1 text-sm text-slate-600">{badge.description}</p>
+                    </div>
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                        badge.achieved
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-white text-slate-600"
+                      }`}
+                    >
+                      {badge.achieved ? "획득" : "진행 중"}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid gap-1">
+                    <p className="text-sm font-medium text-slate-700">{badge.progressText}</p>
+                    <p className="text-xs text-slate-500">
+                      {badge.unlockedAt
+                        ? `달성일 ${formatDate(badge.unlockedAt)}`
+                        : "아직 달성 전"}
+                    </p>
+                    {badge.achieved ? (
+                      <p className="text-xs font-semibold text-amber-700">
+                        축하합니다. 이 마일스톤을 달성했습니다.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
