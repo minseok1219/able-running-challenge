@@ -11,7 +11,7 @@ export default async function GuidePage() {
   const { challengeTypes } = await getPublicSetupData();
 
   return (
-    <AppShell title="챌린지 안내" description="운영 규칙과 기록 기준을 한 화면에서 확인할 수 있습니다.">
+    <AppShell title="챌린지 안내" description="참여 전 꼭 확인해야 할 일정, 기록 기준, 입력 방법을 한곳에 정리했습니다.">
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
       <section className="overflow-hidden rounded-[28px] bg-white shadow-panel">
         <div className="relative min-h-[360px] overflow-hidden sm:min-h-[420px]">
@@ -26,13 +26,15 @@ export default async function GuidePage() {
           <div className="relative z-10 flex h-full flex-col justify-end px-6 py-7 sm:px-8 sm:py-8">
             <div className="max-w-3xl rounded-[28px] border border-white/12 bg-white/10 p-5 text-white backdrop-blur-xl sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">GUIDE</p>
-              <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">
-                규칙을 이해하고,
-                <br />
-                끝까지 완주에 집중하세요
+              <h2 className="mt-3 text-3xl font-semibold leading-[1.08] tracking-tight sm:text-4xl sm:leading-tight">
+                완주까지 흔들리지 않도록,
+                <br className="hidden sm:block" />
+                기준부터 분명하게
               </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-200 sm:text-base">
-                챌린지 일정, 기록 인정 기준, 참여 혜택과 입력 방식을 한 번에 확인할 수 있습니다.
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base">
+                챌린지 일정과 기록 기준,
+                <br className="hidden sm:block" />
+                입력 방법을 미리 확인해보세요.
               </p>
             </div>
           </div>
@@ -40,8 +42,8 @@ export default async function GuidePage() {
       </section>
       <Panel title="챌린지 설명">
         <p className="text-sm leading-6 text-slate-700">
-          가입 후 지점과 챌린지 타입을 선택하고, 날짜별 러닝 기록을 직접 입력합니다. 시스템은
-          입력 즉시 자동 판정하여 승인, 경고, 거절 상태를 계산합니다.
+          참여 방법은 간단합니다. 지점과 챌린지 타입을 선택하고 날짜별 러닝 기록을 입력하면,
+          기준에 따라 자동으로 기록 상태가 반영됩니다.
         </p>
       </Panel>
       <Panel title="챌린지 혜택 안내">
