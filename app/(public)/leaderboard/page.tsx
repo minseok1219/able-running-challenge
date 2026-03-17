@@ -31,11 +31,12 @@ export default async function LeaderboardPage({
           <h2 className="mt-3 max-w-3xl text-[2rem] font-semibold leading-[1.12] tracking-tight sm:text-4xl sm:leading-tight">
             지금 가장 앞서가는 러너를
             <br className="hidden sm:block" />
-            <span className="sm:ml-2">확인해보세요</span>
+            확인해보세요
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
-            진행률과 누적 승인 거리를 기준으로 순위가 정렬됩니다. 내 위치를 확인하고 다음 목표까지
-            꾸준히 도전해보세요.
+            진행률과 누적 승인 거리를 기준으로 순위가 정렬됩니다.
+            <br />
+            내 위치를 확인하고 다음 목표까지 꾸준히 도전해보세요.
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <LeaderboardSummaryCard label="전체 참가자" value={`${entries.length}명`} />
