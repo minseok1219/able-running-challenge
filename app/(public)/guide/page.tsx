@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { SetupNotice } from "@/components/setup-notice";
 import { AppShell, Panel } from "@/components/ui";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
@@ -11,6 +13,31 @@ export default async function GuidePage() {
   return (
     <AppShell title="챌린지 안내" description="운영 규칙과 기록 기준을 한 화면에서 확인할 수 있습니다.">
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
+      <section className="overflow-hidden rounded-[28px] bg-white shadow-panel">
+        <div className="relative min-h-[360px] overflow-hidden sm:min-h-[420px]">
+          <Image
+            src="/challenge-hero-runner.jpg"
+            alt="러닝 챌린지 가이드 배경"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.16)_0%,rgba(15,23,42,0.56)_58%,rgba(15,23,42,0.82)_100%)]" />
+          <div className="relative z-10 flex h-full flex-col justify-end px-6 py-7 sm:px-8 sm:py-8">
+            <div className="max-w-3xl rounded-[28px] border border-white/12 bg-white/10 p-5 text-white backdrop-blur-xl sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">GUIDE</p>
+              <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">
+                규칙을 이해하고,
+                <br />
+                끝까지 완주에 집중하세요
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-200 sm:text-base">
+                챌린지 일정, 기록 인정 기준, 참여 혜택과 입력 방식을 한 번에 확인할 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
       <Panel title="챌린지 설명">
         <p className="text-sm leading-6 text-slate-700">
           가입 후 지점과 챌린지 타입을 선택하고, 날짜별 러닝 기록을 직접 입력합니다. 시스템은
