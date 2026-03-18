@@ -1,6 +1,11 @@
 import { cache } from "react";
 
-import { calculateDashboardSummary, filterRecordsForActiveChallenge } from "@/lib/calculations/challenge";
+import {
+  buildAdminParticipantDetail,
+  buildAdminParticipantWeeklySummary,
+  calculateDashboardSummary,
+  filterRecordsForActiveChallenge
+} from "@/lib/calculations/challenge";
 import {
   fallbackBranches,
   fallbackChallengeTypes,
@@ -8,6 +13,8 @@ import {
 } from "@/lib/config/runtime";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type {
+  AdminParticipantDetail,
+  AdminParticipantSummary,
   AdminActionLog,
   Branch,
   ChallengeType,
@@ -196,27 +203,89 @@ export async function getAdminParticipants() {
   return data.map((row) => {
     const branch = firstOrNull(row.branches);
     const challenge = firstOrNull(row.challenge_types);
-    const records = filterRecordsForActiveChallenge((row.records ?? []) as RecordRow[], {
-      start_date: challenge?.start_date ?? "9999-12-31"
-    });
-    const approvedDistanceM = records
-      .filter((record) => record.status === "approved")
-      .reduce((sum, record) => sum + record.distance_m, 0);
-    const targetDistanceM = challenge?.target_distance_m ?? 1;
+    const records = (row.records ?? []) as RecordRow[];
 
-    return {
-      id: row.id,
-      name: row.name,
-      username: row.username ?? "-",
-      participantCode: row.participant_code ?? "-",
-      isActive: row.is_active,
-      branchName: branch?.name ?? "-",
-      challengeName: challenge?.name ?? "-",
-      approvedDistanceM,
-      progress: approvedDistanceM / targetDistanceM,
-      warningCount: records.filter((record) => record.status === "warning").length
-    };
+    if (!challenge) {
+      return {
+        id: row.id,
+        name: row.name,
+        username: row.username ?? "-",
+        participantCode: row.participant_code ?? "-",
+        isActive: row.is_active,
+        branchName: branch?.name ?? "-",
+        branchCode: branch?.code ?? "",
+        challengeName: "-",
+        challengeCode: "",
+        approvedDistanceM: 0,
+        progress: 0,
+        warningCount: 0,
+        achievedWeeks: 0,
+        totalWeeks: 0,
+        currentWeekStatus: "기간 종료"
+      } satisfies AdminParticipantSummary;
+    }
+
+    return buildAdminParticipantWeeklySummary({
+      records,
+      challenge,
+      participant: {
+        id: row.id,
+        name: row.name,
+        username: row.username ?? "-",
+        participantCode: row.participant_code ?? "-",
+        isActive: row.is_active,
+        branchName: branch?.name ?? "-",
+        branchCode: branch?.code ?? "",
+        challengeName: challenge.name,
+        challengeCode: challenge.code
+      }
+    });
   });
+}
+
+export async function getAdminParticipantDetail(userId: string) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("users")
+    .select(
+      "id, name, username, participant_code, role, is_active, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date, end_date)"
+    )
+    .eq("id", userId)
+    .eq("role", "participant")
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error("참가자 정보를 불러오지 못했습니다.");
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const branch = firstOrNull(data.branches);
+  const challenge = firstOrNull(data.challenge_types);
+  if (!challenge) {
+    throw new Error("참가 종목 정보가 없습니다.");
+  }
+
+  const records = await getParticipantRecords(data.id);
+
+  return buildAdminParticipantDetail({
+    records,
+    challenge,
+    participant: {
+      id: data.id,
+      name: data.name,
+      username: data.username ?? "-",
+      participantCode: data.participant_code ?? "-",
+      isActive: data.is_active,
+      branchName: branch?.name ?? "-",
+      branchCode: branch?.code ?? "",
+      challengeName: challenge.name,
+      challengeCode: challenge.code,
+      targetDistanceM: challenge.target_distance_m
+    }
+  }) satisfies AdminParticipantDetail;
 }
 
 export async function getAdminRecords() {

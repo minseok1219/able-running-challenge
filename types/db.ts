@@ -120,3 +120,72 @@ export type AdminActionLog = {
   participantUsername: string | null;
   participantCode: string | null;
 };
+
+export type WeeklyProgressStatus = "달성" | "미달" | "진행 중" | "예정";
+export type WeeklyListStatus = "달성" | "미달" | "진행 전" | "기간 종료";
+
+export type WeeklyChallengeRule = {
+  weekNumber: number;
+  label: string;
+  startDate: string;
+  endDate: string;
+  targetDistanceM: number;
+};
+
+export type WeeklyProgressItem = {
+  weekNumber: number;
+  label: string;
+  startDate: string;
+  endDate: string;
+  targetDistanceM: number;
+  actualDistanceM: number;
+  achieved: boolean;
+  status: WeeklyProgressStatus;
+};
+
+export type WeeklyProgressSummary = {
+  totalWeeks: number;
+  achievedWeeks: number;
+  currentWeekStatus: WeeklyListStatus;
+  currentWeekNumber: number | null;
+  items: WeeklyProgressItem[];
+};
+
+export type AdminParticipantSummary = {
+  id: string;
+  name: string;
+  username: string;
+  participantCode: string;
+  isActive: boolean;
+  branchName: string;
+  branchCode: string;
+  challengeName: string;
+  challengeCode: string;
+  approvedDistanceM: number;
+  progress: number;
+  warningCount: number;
+  achievedWeeks: number;
+  totalWeeks: number;
+  currentWeekStatus: WeeklyListStatus;
+};
+
+export type AdminParticipantDetail = {
+  id: string;
+  name: string;
+  username: string;
+  participantCode: string;
+  isActive: boolean;
+  branchName: string;
+  branchCode: string;
+  challengeName: string;
+  challengeCode: string;
+  targetDistanceM: number;
+  approvedDistanceM: number;
+  progress: number;
+  achievedWeeks: number;
+  totalWeeks: number;
+  currentWeekStatus: WeeklyListStatus;
+  lastRecordDate: string | null;
+  recentRecords: RecordRow[];
+  weeklyProgress: WeeklyProgressItem[];
+};

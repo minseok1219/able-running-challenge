@@ -1,12 +1,18 @@
 import { allowLocalChallengeTesting } from "@/lib/config/runtime";
 import { getTodayDateString } from "@/lib/utils/format";
 import type {
+  AdminParticipantDetail,
+  AdminParticipantSummary,
   BadgeProgress,
   ChartPoint,
   ChallengeType,
   DashboardSummary,
   RecordRow,
-  RecordStatus
+  RecordStatus,
+  WeeklyChallengeRule,
+  WeeklyListStatus,
+  WeeklyProgressItem,
+  WeeklyProgressSummary
 } from "@/types/db";
 
 function addDays(dateString: string, days: number) {
@@ -14,6 +20,26 @@ function addDays(dateString: string, days: number) {
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
 }
+
+const WEEKLY_RULES: Record<string, WeeklyChallengeRule[]> = {
+  "100km": [
+    { weekNumber: 1, label: "1주차", startDate: "2026-03-23", endDate: "2026-03-29", targetDistanceM: 15000 },
+    { weekNumber: 2, label: "2주차", startDate: "2026-03-30", endDate: "2026-04-05", targetDistanceM: 20000 },
+    { weekNumber: 3, label: "3주차", startDate: "2026-04-06", endDate: "2026-04-12", targetDistanceM: 20000 },
+    { weekNumber: 4, label: "4주차", startDate: "2026-04-13", endDate: "2026-04-19", targetDistanceM: 20000 },
+    { weekNumber: 5, label: "5주차", startDate: "2026-04-20", endDate: "2026-04-26", targetDistanceM: 25000 }
+  ],
+  "160km": [
+    { weekNumber: 1, label: "1주차", startDate: "2026-03-23", endDate: "2026-03-29", targetDistanceM: 15000 },
+    { weekNumber: 2, label: "2주차", startDate: "2026-03-30", endDate: "2026-04-05", targetDistanceM: 20000 },
+    { weekNumber: 3, label: "3주차", startDate: "2026-04-06", endDate: "2026-04-12", targetDistanceM: 20000 },
+    { weekNumber: 4, label: "4주차", startDate: "2026-04-13", endDate: "2026-04-19", targetDistanceM: 20000 },
+    { weekNumber: 5, label: "5주차", startDate: "2026-04-20", endDate: "2026-04-26", targetDistanceM: 20000 },
+    { weekNumber: 6, label: "6주차", startDate: "2026-04-27", endDate: "2026-05-03", targetDistanceM: 20000 },
+    { weekNumber: 7, label: "7주차", startDate: "2026-05-04", endDate: "2026-05-10", targetDistanceM: 20000 },
+    { weekNumber: 8, label: "8주차", startDate: "2026-05-11", endDate: "2026-05-16", targetDistanceM: 25000 }
+  ]
+};
 
 export function getChallengeResetDate(challenge: Pick<ChallengeType, "start_date">) {
   return addDays(challenge.start_date, -1);
@@ -166,6 +192,149 @@ export function buildWeeklyChartForChallenge(
   challenge: Pick<ChallengeType, "start_date">
 ) {
   return buildWeeklyChart(filterRecordsForActiveChallenge(records, challenge) as RecordRow[]);
+}
+
+export function getWeeklyChallengeRules(challengeCode: string) {
+  return WEEKLY_RULES[challengeCode] ?? [];
+}
+
+function sumApprovedDistanceInRange(
+  records: Pick<RecordRow, "run_date" | "status" | "distance_m">[],
+  startDate: string,
+  endDate: string
+) {
+  return records.reduce((sum, record) => {
+    if (record.status !== "approved") {
+      return sum;
+    }
+
+    if (record.run_date < startDate || record.run_date > endDate) {
+      return sum;
+    }
+
+    return sum + record.distance_m;
+  }, 0);
+}
+
+function getWeeklyProgressStatus(rule: WeeklyChallengeRule, actualDistanceM: number, today: string): WeeklyProgressItem["status"] {
+  if (today < rule.startDate) {
+    return "예정";
+  }
+
+  if (actualDistanceM >= rule.targetDistanceM) {
+    return "달성";
+  }
+
+  if (today <= rule.endDate) {
+    return "진행 중";
+  }
+
+  return "미달";
+}
+
+function getCurrentWeekListStatus(rules: WeeklyChallengeRule[], today: string, items: WeeklyProgressItem[]): WeeklyListStatus {
+  if (rules.length === 0) {
+    return "기간 종료";
+  }
+
+  if (today < rules[0].startDate) {
+    return "진행 전";
+  }
+
+  const activeWeek = items.find((item) => item.startDate <= today && item.endDate >= today);
+  if (activeWeek) {
+    return activeWeek.achieved ? "달성" : "미달";
+  }
+
+  return "기간 종료";
+}
+
+export function calculateWeeklyProgress(
+  records: Pick<RecordRow, "run_date" | "status" | "distance_m">[],
+  challenge: Pick<ChallengeType, "code" | "start_date">
+): WeeklyProgressSummary {
+  const rules = getWeeklyChallengeRules(challenge.code);
+  const scopedRecords = filterRecordsForActiveChallenge(records, challenge);
+  const today = getTodayDateString();
+
+  const items = rules.map((rule) => {
+    const actualDistanceM = sumApprovedDistanceInRange(scopedRecords, rule.startDate, rule.endDate);
+    const achieved = actualDistanceM >= rule.targetDistanceM;
+
+    return {
+      weekNumber: rule.weekNumber,
+      label: rule.label,
+      startDate: rule.startDate,
+      endDate: rule.endDate,
+      targetDistanceM: rule.targetDistanceM,
+      actualDistanceM,
+      achieved,
+      status: getWeeklyProgressStatus(rule, actualDistanceM, today)
+    } satisfies WeeklyProgressItem;
+  });
+
+  return {
+    totalWeeks: items.length,
+    achievedWeeks: items.filter((item) => item.achieved).length,
+    currentWeekStatus: getCurrentWeekListStatus(rules, today, items),
+    currentWeekNumber: items.find((item) => item.startDate <= today && item.endDate >= today)?.weekNumber ?? null,
+    items
+  };
+}
+
+export function buildAdminParticipantWeeklySummary(args: {
+  records: RecordRow[];
+  challenge: Pick<ChallengeType, "code" | "start_date" | "target_distance_m" | "name">;
+  participant: Pick<AdminParticipantSummary, "id" | "name" | "username" | "participantCode" | "isActive" | "branchName" | "branchCode" | "challengeName" | "challengeCode">;
+}) {
+  const approvedDistanceM = filterRecordsForActiveChallenge(args.records, args.challenge)
+    .filter((record) => record.status === "approved")
+    .reduce((sum, record) => sum + record.distance_m, 0);
+  const weeklyProgress = calculateWeeklyProgress(args.records, args.challenge);
+
+  return {
+    ...args.participant,
+    approvedDistanceM,
+    progress: approvedDistanceM / Math.max(1, args.challenge.target_distance_m),
+    warningCount: filterRecordsForActiveChallenge(args.records, args.challenge).filter((record) => record.status === "warning").length,
+    achievedWeeks: weeklyProgress.achievedWeeks,
+    totalWeeks: weeklyProgress.totalWeeks,
+    currentWeekStatus: weeklyProgress.currentWeekStatus
+  } satisfies AdminParticipantSummary;
+}
+
+export function buildAdminParticipantDetail(args: {
+  records: RecordRow[];
+  challenge: Pick<ChallengeType, "code" | "start_date" | "target_distance_m">;
+  participant: Omit<
+    AdminParticipantDetail,
+    "approvedDistanceM" | "progress" | "achievedWeeks" | "totalWeeks" | "lastRecordDate" | "recentRecords" | "weeklyProgress" | "currentWeekStatus"
+  >;
+}) {
+  const scopedRecords = filterRecordsForActiveChallenge(args.records, args.challenge);
+  const approvedDistanceM = scopedRecords
+    .filter((record) => record.status === "approved")
+    .reduce((sum, record) => sum + record.distance_m, 0);
+  const weeklyProgress = calculateWeeklyProgress(args.records, args.challenge);
+  const recentRecords = [...scopedRecords].sort((a, b) => {
+    if (a.run_date === b.run_date) {
+      return b.created_at.localeCompare(a.created_at);
+    }
+
+    return b.run_date.localeCompare(a.run_date);
+  }).slice(0, 8);
+
+  return {
+    ...args.participant,
+    approvedDistanceM,
+    progress: approvedDistanceM / Math.max(1, args.challenge.target_distance_m),
+    achievedWeeks: weeklyProgress.achievedWeeks,
+    totalWeeks: weeklyProgress.totalWeeks,
+    currentWeekStatus: weeklyProgress.currentWeekStatus,
+    lastRecordDate: recentRecords[0]?.run_date ?? null,
+    recentRecords,
+    weeklyProgress: weeklyProgress.items
+  } satisfies AdminParticipantDetail;
 }
 
 function getApprovedRecordsForChallenge(
