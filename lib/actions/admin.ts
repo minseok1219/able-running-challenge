@@ -308,3 +308,68 @@ export async function deleteParticipantAction(formData: FormData) {
     );
   }
 }
+
+export async function updateParticipantBranchAction(formData: FormData) {
+  const session = await requireRole("admin", "/admin/login");
+  await getCurrentUserRow(session);
+  const supabase = getSupabaseAdmin();
+
+  try {
+    const userId = String(formData.get("user_id") ?? "");
+    const branchId = String(formData.get("branch_id") ?? "");
+    const returnTo = String(formData.get("return_to") ?? "/admin/participants");
+
+    if (!userId) {
+      throw new Error("대상 참가자를 찾지 못했습니다.");
+    }
+
+    if (!branchId) {
+      throw new Error("변경할 지점을 선택해 주세요.");
+    }
+
+    const { data: targetUser, error: fetchError } = await supabase
+      .from("users")
+      .select("id, role, branch_id")
+      .eq("id", userId)
+      .single();
+
+    if (fetchError || !targetUser || targetUser.role !== "participant") {
+      throw new Error("대상 참가자를 찾지 못했습니다.");
+    }
+
+    const { data: branch, error: branchError } = await supabase
+      .from("branches")
+      .select("id")
+      .eq("id", branchId)
+      .single();
+
+    if (branchError || !branch) {
+      throw new Error("선택한 지점 정보를 찾지 못했습니다.");
+    }
+
+    const { error } = await supabase
+      .from("users")
+      .update({
+        branch_id: branchId
+      })
+      .eq("id", userId);
+
+    if (error) {
+      throw new Error("지점 수정에 실패했습니다.");
+    }
+
+    revalidatePath("/admin/participants");
+    revalidatePath(`/admin/participants/${userId}`);
+    revalidatePath("/admin/overview");
+    revalidatePath("/leaderboard");
+    revalidatePath("/dashboard");
+    redirect(buildAdminRedirect(`/admin/participants/${userId}`, { updated: "branch" }));
+  } catch (error) {
+    rethrowIfRedirectError(error);
+    redirect(
+      buildAdminRedirect(String(formData.get("return_to") ?? "/admin/participants"), {
+        error: error instanceof Error ? error.message : "지점 수정에 실패했습니다."
+      })
+    );
+  }
+}

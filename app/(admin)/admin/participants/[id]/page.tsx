@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 
 import { AdminNav } from "@/components/navigation";
 import { AppShell, AlertMessage, EmptyState, Panel, StatusBadge } from "@/components/ui";
-import { deleteParticipantAction } from "@/lib/actions/admin";
+import { deleteParticipantAction, updateParticipantBranchAction } from "@/lib/actions/admin";
 import { requireRole } from "@/lib/auth/server";
-import { getAdminParticipantDetail } from "@/lib/supabase/queries";
+import { getAdminParticipantDetail, getPublicSetupData } from "@/lib/supabase/queries";
 import { formatDate, formatDistanceKm, formatPercent, formatPace } from "@/lib/utils/format";
 import type { WeeklyProgressStatus } from "@/types/db";
 
@@ -16,12 +16,12 @@ export default async function AdminParticipantDetailPage({
   searchParams
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; updated?: string }>;
 }) {
   await requireRole("admin", "/admin/login");
   const { id } = await params;
   const query = await searchParams;
-  const participant = await getAdminParticipantDetail(id);
+  const [{ branches }, participant] = await Promise.all([getPublicSetupData(), getAdminParticipantDetail(id)]);
 
   if (!participant) {
     notFound();
@@ -34,6 +34,10 @@ export default async function AdminParticipantDetailPage({
       actions={<AdminNav />}
     >
       <AlertMessage message={query.error} />
+      <AlertMessage
+        type="success"
+        message={query.updated === "branch" ? "참가자 지점이 수정되었습니다." : undefined}
+      />
 
       <Panel className="overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_58%),white]">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -80,6 +84,39 @@ export default async function AdminParticipantDetailPage({
               <p className="mt-1 text-sm text-slate-600">
                 이번 주 기준 달성 여부와 전체 주차 진행 현황을 아래 표에서 확인할 수 있습니다.
               </p>
+            </div>
+
+            <div className="mt-4 rounded-[20px] border border-slate-200 bg-white p-4">
+              <p className="text-sm font-semibold text-slate-900">정보 수정</p>
+              <p className="mt-2 text-sm text-slate-600">
+                잘못 신청한 경우에만 참가자 지점을 수정해 주세요. 변경 즉시 관리자 목록과 리더보드에도 반영됩니다.
+              </p>
+              <form action={updateParticipantBranchAction} className="mt-4 grid gap-3">
+                <input type="hidden" name="user_id" value={participant.id} />
+                <input type="hidden" name="return_to" value={`/admin/participants/${participant.id}`} />
+                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                  <span>지점 변경</span>
+                  <select
+                    name="branch_id"
+                    defaultValue={branches.find((branch) => branch.name === participant.branchName)?.id ?? ""}
+                    required
+                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+                  >
+                    <option value="">선택해주세요</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="submit"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                >
+                  지점 수정 저장
+                </button>
+              </form>
             </div>
 
             <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50/70 p-4">
