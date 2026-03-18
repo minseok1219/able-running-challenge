@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { AdminNav } from "@/components/navigation";
 import { AppShell, AlertMessage, EmptyState, Panel, SubmitButton } from "@/components/ui";
-import { toggleParticipantActiveAction } from "@/lib/actions/admin";
+import { deleteParticipantAction, toggleParticipantActiveAction } from "@/lib/actions/admin";
 import { requireRole } from "@/lib/auth/server";
 import { getPublicSetupData, getAdminParticipants } from "@/lib/supabase/queries";
 import { formatDistanceKm, formatPercent } from "@/lib/utils/format";
@@ -64,6 +64,8 @@ export default async function AdminParticipantsPage({
               ? "참가자가 비활성화되었습니다."
               : params.updated === "activated"
                 ? "참가자가 다시 활성화되었습니다."
+                : params.updated === "deleted"
+                  ? "참가자가 삭제되었습니다."
                 : undefined
           }
         />
@@ -182,6 +184,39 @@ export default async function AdminParticipantsPage({
                     </form>
                   </div>
                 </div>
+
+                <details className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50/70 p-4">
+                  <summary className="cursor-pointer list-none text-sm font-semibold text-rose-700 marker:hidden">
+                    참가자 삭제
+                  </summary>
+                  <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+                    <div className="grid gap-2">
+                      <p className="text-sm text-rose-700">
+                        삭제하면 참가자 계정과 기록이 함께 제거됩니다. 관리자 비밀번호를 다시 입력한 뒤 진행해 주세요.
+                      </p>
+                      <form action={deleteParticipantAction} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                        <input type="hidden" name="user_id" value={participant.id} />
+                        <input type="hidden" name="return_to" value="/admin/participants" />
+                        <label className="grid gap-2 text-sm font-medium text-slate-700">
+                          <span>관리자 비밀번호 확인</span>
+                          <input
+                            type="password"
+                            name="admin_password"
+                            required
+                            placeholder="현재 관리자 비밀번호"
+                            className="rounded-2xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-900"
+                          />
+                        </label>
+                        <button
+                          type="submit"
+                          className="inline-flex min-h-11 items-center justify-center rounded-full bg-rose-600 px-5 py-3 text-sm font-semibold text-white hover:bg-rose-700"
+                        >
+                          참가자 삭제
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </details>
               </article>
             ))}
           </div>

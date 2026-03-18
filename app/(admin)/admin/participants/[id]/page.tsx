@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AdminNav } from "@/components/navigation";
-import { AppShell, EmptyState, Panel, StatusBadge } from "@/components/ui";
+import { AppShell, AlertMessage, EmptyState, Panel, StatusBadge } from "@/components/ui";
+import { deleteParticipantAction } from "@/lib/actions/admin";
 import { requireRole } from "@/lib/auth/server";
 import { getAdminParticipantDetail } from "@/lib/supabase/queries";
 import { formatDate, formatDistanceKm, formatPercent, formatPace } from "@/lib/utils/format";
@@ -11,12 +12,15 @@ import type { WeeklyProgressStatus } from "@/types/db";
 export const dynamic = "force-dynamic";
 
 export default async function AdminParticipantDetailPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   await requireRole("admin", "/admin/login");
   const { id } = await params;
+  const query = await searchParams;
   const participant = await getAdminParticipantDetail(id);
 
   if (!participant) {
@@ -29,6 +33,8 @@ export default async function AdminParticipantDetailPage({
       description="참가자별 주차 달성 현황과 최근 기록을 함께 확인합니다."
       actions={<AdminNav />}
     >
+      <AlertMessage message={query.error} />
+
       <Panel className="overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.16),_transparent_58%),white]">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
@@ -74,6 +80,33 @@ export default async function AdminParticipantDetailPage({
               <p className="mt-1 text-sm text-slate-600">
                 이번 주 기준 달성 여부와 전체 주차 진행 현황을 아래 표에서 확인할 수 있습니다.
               </p>
+            </div>
+
+            <div className="mt-4 rounded-[20px] border border-rose-200 bg-rose-50/70 p-4">
+              <p className="text-sm font-semibold text-rose-700">참가자 삭제</p>
+              <p className="mt-2 text-sm text-rose-700">
+                잘못 가입한 참가자를 정리할 때만 사용해 주세요. 삭제 시 참가자 계정과 기록이 함께 제거됩니다.
+              </p>
+              <form action={deleteParticipantAction} className="mt-4 grid gap-3">
+                <input type="hidden" name="user_id" value={participant.id} />
+                <input type="hidden" name="return_to" value={`/admin/participants/${participant.id}`} />
+                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                  <span>관리자 비밀번호 확인</span>
+                  <input
+                    type="password"
+                    name="admin_password"
+                    required
+                    placeholder="현재 관리자 비밀번호"
+                    className="rounded-2xl border border-rose-200 bg-white px-4 py-3 text-sm text-slate-900"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-rose-600 px-5 py-3 text-sm font-semibold text-white hover:bg-rose-700"
+                >
+                  참가자 삭제
+                </button>
+              </form>
             </div>
           </div>
         </div>

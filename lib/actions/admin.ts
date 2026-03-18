@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { verifyPassword } from "@/lib/auth/password";
 import { getCurrentUserRow, requireRole } from "@/lib/auth/server";
 import { evaluateRecordStatus } from "@/lib/calculations/challenge";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -250,6 +251,59 @@ export async function toggleParticipantActiveAction(formData: FormData) {
     redirect(
       buildAdminRedirect("/admin/participants", {
         error: error instanceof Error ? error.message : "참가자 상태 변경에 실패했습니다."
+      })
+    );
+  }
+}
+
+export async function deleteParticipantAction(formData: FormData) {
+  const session = await requireRole("admin", "/admin/login");
+  const admin = await getCurrentUserRow(session);
+  const supabase = getSupabaseAdmin();
+
+  const userId = String(formData.get("user_id") ?? "");
+  const adminPassword = String(formData.get("admin_password") ?? "");
+  const returnTo = String(formData.get("return_to") ?? "/admin/participants");
+
+  try {
+    if (!userId) {
+      throw new Error("삭제할 참가자를 찾지 못했습니다.");
+    }
+
+    if (!adminPassword) {
+      throw new Error("관리자 비밀번호를 입력해 주세요.");
+    }
+
+    if (!verifyPassword(adminPassword, admin.password_hash)) {
+      throw new Error("관리자 비밀번호가 올바르지 않습니다.");
+    }
+
+    const { data: targetUser, error: fetchError } = await supabase
+      .from("users")
+      .select("id, role, name")
+      .eq("id", userId)
+      .single();
+
+    if (fetchError || !targetUser || targetUser.role !== "participant") {
+      throw new Error("삭제할 참가자를 찾지 못했습니다.");
+    }
+
+    const { error } = await supabase.from("users").delete().eq("id", userId);
+
+    if (error) {
+      throw new Error("참가자 삭제에 실패했습니다.");
+    }
+
+    revalidatePath("/admin/participants");
+    revalidatePath("/admin/overview");
+    revalidatePath("/admin/records");
+    revalidatePath("/leaderboard");
+    redirect("/admin/participants?updated=deleted");
+  } catch (error) {
+    rethrowIfRedirectError(error);
+    redirect(
+      buildAdminRedirect(returnTo, {
+        error: error instanceof Error ? error.message : "참가자 삭제에 실패했습니다."
       })
     );
   }
