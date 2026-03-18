@@ -173,9 +173,14 @@ function LeaderboardSummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[20px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur sm:rounded-[24px] sm:py-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">{label}</p>
-      <p className="mt-2 text-xl font-semibold text-white sm:text-2xl">{value}</p>
+    <div className="rounded-[22px] border border-white/10 bg-gradient-to-br from-white/14 to-white/8 px-5 py-4 backdrop-blur sm:rounded-[24px] sm:px-6 sm:py-5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:text-xs">{label}</p>
+      <div className="mt-3 flex items-end gap-2">
+        <p className="text-[2.6rem] font-semibold leading-none tracking-tight text-white sm:text-[3.15rem]">
+          {value.replace("명", "")}
+        </p>
+        <span className="pb-1 text-base font-semibold text-slate-200 sm:text-lg">명</span>
+      </div>
     </div>
   );
 }
