@@ -172,14 +172,24 @@ function LeaderboardSummaryCard({
   label: string;
   value: string;
 }) {
+  const numericValue = value.replace("명", "");
+
   return (
-    <div className="rounded-[22px] border border-white/10 bg-gradient-to-br from-white/14 to-white/8 px-5 py-4 backdrop-blur sm:rounded-[24px] sm:px-6 sm:py-5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:text-xs">{label}</p>
-      <div className="mt-3 flex items-end gap-2">
-        <p className="text-[2.6rem] font-semibold leading-none tracking-tight text-white sm:text-[3.15rem]">
-          {value.replace("명", "")}
+    <div className="rounded-[22px] border border-white/10 bg-gradient-to-br from-white/16 to-white/8 px-5 py-4 backdrop-blur sm:rounded-[24px] sm:px-6 sm:py-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:text-xs">{label}</p>
+          <p className="mt-1 text-xs font-medium text-slate-400">현재 리더보드 집계 인원</p>
+        </div>
+        <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-100">
+          live
+        </span>
+      </div>
+      <div className="mt-4 flex items-end gap-2">
+        <p className="text-[3.15rem] font-semibold leading-none tracking-[-0.04em] text-white sm:text-[3.9rem]">
+          {numericValue}
         </p>
-        <span className="pb-1 text-base font-semibold text-slate-200 sm:text-lg">명</span>
+        <span className="pb-1 text-lg font-semibold text-slate-200 sm:text-xl">명</span>
       </div>
     </div>
   );
