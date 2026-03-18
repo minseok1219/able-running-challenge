@@ -12,8 +12,7 @@ export default async function HomePage() {
 
   return (
     <AppShell
-      title=""
-      description="매일의 한 걸음이, 목표 완주를 만듭니다."
+      hideHeader
     >
       <section className="overflow-hidden rounded-[28px] bg-white shadow-panel">
         <div className="relative min-h-[680px] overflow-hidden lg:min-h-[760px]">
