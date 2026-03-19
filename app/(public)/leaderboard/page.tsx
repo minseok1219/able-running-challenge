@@ -96,7 +96,7 @@ export default async function LeaderboardPage({
             {topThree.map((entry, index) => (
               <div
                 key={entry.userId}
-                className={`rounded-[20px] border p-3 shadow-sm sm:rounded-[22px] sm:p-3.5 ${
+                className={`rounded-[18px] border p-3 shadow-sm sm:rounded-[20px] sm:p-3 ${
                   index === 0
                     ? "border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50"
                     : index === 1
@@ -107,10 +107,10 @@ export default async function LeaderboardPage({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-center gap-2 text-slate-900">
-                      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500 shadow-sm">
+                      <span className="shrink-0 rounded-full bg-white px-2 py-1 text-xs font-semibold text-slate-500 shadow-sm">
                         #{index + 1}
                       </span>
-                      <p className="truncate text-base font-semibold tracking-tight sm:text-[1.05rem]">
+                      <p className="truncate text-base font-semibold tracking-tight">
                         {entry.name}
                       </p>
                     </div>
@@ -122,7 +122,7 @@ export default async function LeaderboardPage({
                     {entry.challengeName}
                   </span>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/70 pt-2.5 text-sm">
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-white/70 pt-2 text-sm">
                   <InlineMetric label="진행률" value={formatPercent(entry.progress)} compact />
                   <InlineMetric label="누적 거리" value={formatDistanceKm(entry.approvedDistanceM)} compact />
                 </div>
