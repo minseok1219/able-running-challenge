@@ -40,14 +40,32 @@ export function SignupForm({
 }
 
 export function ParticipantLoginForm({
-  action
+  action,
+  defaultUsername = ""
 }: {
   action: (formData: FormData) => Promise<void>;
+  defaultUsername?: string;
 }) {
   return (
     <form action={action} className="grid gap-4">
-      <Input label="아이디" name="username" placeholder="예: runner123" required />
+      <Input
+        label="아이디"
+        name="username"
+        placeholder="예: runner123"
+        defaultValue={defaultUsername}
+        required
+      />
       <Input label="비밀번호" name="password" type="password" required />
+      <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
+        <input
+          type="checkbox"
+          name="remember_username"
+          value="on"
+          defaultChecked={Boolean(defaultUsername)}
+          className="h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent"
+        />
+        <span>아이디 기억하기</span>
+      </label>
       <SubmitButton>로그인</SubmitButton>
     </form>
   );

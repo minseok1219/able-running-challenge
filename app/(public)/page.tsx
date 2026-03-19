@@ -2,6 +2,8 @@ import Image from "next/image";
 
 import { SetupNotice } from "@/components/setup-notice";
 import { AppShell, ButtonLink, Panel } from "@/components/ui";
+import { getCurrentSession } from "@/lib/auth/server";
+import { logoutAction } from "@/lib/actions/auth";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
 import { getPublicSetupData } from "@/lib/supabase/queries";
 
@@ -9,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const { challengeTypes } = await getPublicSetupData();
+  const session = await getCurrentSession();
 
   return (
     <AppShell
@@ -57,9 +60,20 @@ export default async function HomePage() {
                   <ButtonLink href="/leaderboard" variant="secondary">
                     현재 리더보드 보기
                   </ButtonLink>
-                  <ButtonLink href="/login" variant="secondary">
-                    로그인
-                  </ButtonLink>
+                  {session ? (
+                    <form action={logoutAction}>
+                      <button
+                        type="submit"
+                        className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-ink hover:border-slate-400 sm:w-auto"
+                      >
+                        로그아웃
+                      </button>
+                    </form>
+                  ) : (
+                    <ButtonLink href="/login" variant="secondary">
+                      로그인
+                    </ButtonLink>
+                  )}
                 </div>
               </div>
 

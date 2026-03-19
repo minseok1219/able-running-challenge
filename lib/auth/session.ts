@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import type { SessionUser } from "@/types/db";
 
 const SESSION_COOKIE = "arc_session";
+const REMEMBERED_USERNAME_COOKIE = "arc_remembered_username";
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -33,6 +34,24 @@ export async function createSessionCookie(user: SessionUser) {
 
 export async function clearSessionCookie() {
   (await cookies()).delete(SESSION_COOKIE);
+}
+
+export async function setRememberedUsernameCookie(username: string) {
+  (await cookies()).set(REMEMBERED_USERNAME_COOKIE, username, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30
+  });
+}
+
+export async function clearRememberedUsernameCookie() {
+  (await cookies()).delete(REMEMBERED_USERNAME_COOKIE);
+}
+
+export async function readRememberedUsernameCookie() {
+  return (await cookies()).get(REMEMBERED_USERNAME_COOKIE)?.value ?? "";
 }
 
 export async function readSessionCookie(): Promise<SessionUser | null> {

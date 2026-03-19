@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { createSessionCookie, clearSessionCookie } from "@/lib/auth/session";
+import {
+  clearRememberedUsernameCookie,
+  createSessionCookie,
+  clearSessionCookie,
+  setRememberedUsernameCookie
+} from "@/lib/auth/session";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
@@ -125,6 +130,7 @@ export async function participantLoginAction(formData: FormData) {
 
     const username = String(formData.get("username") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
+    const rememberUsername = formData.get("remember_username") === "on";
 
     validateParticipantLoginInput(username, password);
     const user = await findUserByCredentials({
@@ -143,6 +149,11 @@ export async function participantLoginAction(formData: FormData) {
     };
 
     await createSessionCookie(sessionUser);
+    if (rememberUsername) {
+      await setRememberedUsernameCookie(username);
+    } else {
+      await clearRememberedUsernameCookie();
+    }
     revalidatePath("/dashboard");
     redirect("/dashboard");
   } catch (error) {

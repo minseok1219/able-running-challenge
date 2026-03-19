@@ -2,6 +2,7 @@ import { ParticipantLoginForm } from "@/components/forms";
 import { SetupNotice } from "@/components/setup-notice";
 import { AppShell, AlertMessage, Panel } from "@/components/ui";
 import { participantLoginAction } from "@/lib/actions/auth";
+import { readRememberedUsernameCookie } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
 
 export default async function LoginPage({
@@ -10,13 +11,14 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const params = await searchParams;
+  const rememberedUsername = await readRememberedUsernameCookie();
 
   return (
     <AppShell title="참가자 로그인" description="가입할 때 만든 아이디와 비밀번호로 로그인합니다.">
       {!hasSupabaseEnv() ? <SetupNotice /> : null}
       <Panel title="로그인">
         <AlertMessage message={params.error} />
-        <ParticipantLoginForm action={participantLoginAction} />
+        <ParticipantLoginForm action={participantLoginAction} defaultUsername={rememberedUsername} />
       </Panel>
     </AppShell>
   );
