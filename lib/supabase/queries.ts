@@ -91,8 +91,8 @@ export async function getParticipantRecords(userId: string) {
     .from("records")
     .select("*")
     .eq("user_id", userId)
-    .order("run_date", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("run_date", { ascending: false });
 
   if (error || !data) {
     throw new Error("기록을 불러오지 못했습니다.");
