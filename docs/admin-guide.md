@@ -4,9 +4,7 @@
 
 - 접속 주소: `https://able-running-challenge.vercel.app/admin/login`
 - 관리자 아이디와 비밀번호로 로그인합니다.
-- 현재 운영 계정
-  - 아이디: `cfable`
-  - 비밀번호: `able1234!`
+- 운영 계정 정보는 안전한 내부 채널에서만 관리합니다.
 
 ## 2. 관리자 메뉴
 

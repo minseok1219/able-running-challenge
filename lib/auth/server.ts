@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { readSessionCookie } from "@/lib/auth/session";
+import { clearSessionCookie, readSessionCookie } from "@/lib/auth/session";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type { SessionUser, UserRole, UserRow } from "@/types/db";
 
@@ -8,9 +8,31 @@ export async function getCurrentSession() {
   return readSessionCookie();
 }
 
+async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, role, is_active")
+    .eq("id", session.id)
+    .maybeSingle();
+
+  if (
+    error ||
+    !data ||
+    !data.is_active ||
+    data.role !== session.role ||
+    !roles.includes(data.role as UserRole)
+  ) {
+    await clearSessionCookie();
+    return false;
+  }
+
+  return true;
+}
+
 export async function requireRole(role: UserRole, redirectTo: string) {
   const session = await getCurrentSession();
-  if (!session || session.role !== role) {
+  if (!session || session.role !== role || !(await validateActiveSession(session, [role]))) {
     redirect(redirectTo);
   }
 
@@ -19,7 +41,7 @@ export async function requireRole(role: UserRole, redirectTo: string) {
 
 export async function requireAnyRole(roles: UserRole[], redirectTo: string) {
   const session = await getCurrentSession();
-  if (!session || !roles.includes(session.role)) {
+  if (!session || !roles.includes(session.role) || !(await validateActiveSession(session, roles))) {
     redirect(redirectTo);
   }
 
@@ -37,6 +59,12 @@ export async function getCurrentUserRow(session: SessionUser): Promise<UserRow> 
     .single();
 
   if (error || !data) {
+    await clearSessionCookie();
+    redirect("/login");
+  }
+
+  if (!data.is_active || data.role !== session.role) {
+    await clearSessionCookie();
     throw new Error("사용자 정보를 불러오지 못했습니다.");
   }
 

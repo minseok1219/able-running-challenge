@@ -10,6 +10,11 @@ import {
   setRememberedUsernameCookie
 } from "@/lib/auth/session";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import {
+  assertLoginAttemptsAllowed,
+  clearFailedLoginAttempts,
+  recordFailedLoginAttempt
+} from "@/lib/auth/rate-limit";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { rethrowIfRedirectError } from "@/lib/utils/redirect";
@@ -92,6 +97,10 @@ async function findUserByCredentials({
   password: string;
 }) {
   const supabase = getSupabaseAdmin();
+  const invalidCredentialMessage =
+    role === "participant"
+      ? "아이디 또는 비밀번호를 확인해주세요."
+      : "관리자 계정 정보가 올바르지 않습니다.";
   const { data, error } = await supabase
     .from("users")
     .select(
@@ -103,36 +112,35 @@ async function findUserByCredentials({
     .maybeSingle();
 
   if (error) {
-    throw new Error(`DB 조회 실패: ${error.message}`);
+    throw new Error("로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   }
 
   if (!data) {
-    throw new Error(
-      role === "participant"
-        ? "아이디 계정을 찾지 못했습니다."
-        : "관리자 계정을 찾지 못했습니다."
-    );
+    throw new Error(invalidCredentialMessage);
   }
 
   const user = data as UserRow;
   if (!verifyPassword(password, user.password_hash)) {
-    throw new Error("비밀번호가 일치하지 않습니다.");
+    throw new Error(invalidCredentialMessage);
   }
 
   return user;
 }
 
 export async function participantLoginAction(formData: FormData) {
+  const username = String(formData.get("username") ?? "").trim().toLowerCase();
+  const rememberUsername = formData.get("remember_username") === "on";
+  const rateLimitKey = `participant:${username}`;
+
   try {
     if (!hasSupabaseEnv()) {
       throw new Error("Supabase 환경설정이 없어 로그인을 처리할 수 없습니다. .env.local을 먼저 설정해주세요.");
     }
 
-    const username = String(formData.get("username") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
-    const rememberUsername = formData.get("remember_username") === "on";
 
     validateParticipantLoginInput(username, password);
+    assertLoginAttemptsAllowed(rateLimitKey);
     const user = await findUserByCredentials({
       field: "username",
       value: username,
@@ -154,10 +162,14 @@ export async function participantLoginAction(formData: FormData) {
     } else {
       await clearRememberedUsernameCookie();
     }
+    clearFailedLoginAttempts(rateLimitKey);
     revalidatePath("/dashboard");
     redirect("/dashboard");
   } catch (error) {
     rethrowIfRedirectError(error);
+    if (username) {
+      recordFailedLoginAttempt(rateLimitKey);
+    }
     redirect(
       buildRedirect("/login", {
         error: error instanceof Error ? error.message : "로그인에 실패했습니다."
@@ -167,15 +179,18 @@ export async function participantLoginAction(formData: FormData) {
 }
 
 export async function adminLoginAction(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const rateLimitKey = `admin:${name.toLowerCase()}`;
+
   try {
     if (!hasSupabaseEnv()) {
       throw new Error("Supabase 환경설정이 없어 관리자 로그인을 처리할 수 없습니다. .env.local을 먼저 설정해주세요.");
     }
 
-    const name = String(formData.get("name") ?? "");
     const password = String(formData.get("password") ?? "");
 
     validateAdminLoginInput(name, password);
+    assertLoginAttemptsAllowed(rateLimitKey);
     const user = await findUserByCredentials({
       field: "name",
       value: name,
@@ -192,10 +207,14 @@ export async function adminLoginAction(formData: FormData) {
     };
 
     await createSessionCookie(sessionUser);
+    clearFailedLoginAttempts(rateLimitKey);
     revalidatePath("/admin/overview");
     redirect("/admin/overview");
   } catch (error) {
     rethrowIfRedirectError(error);
+    if (name) {
+      recordFailedLoginAttempt(rateLimitKey);
+    }
     redirect(
       buildRedirect("/admin/login", {
         error: error instanceof Error ? error.message : "관리자 로그인에 실패했습니다."
