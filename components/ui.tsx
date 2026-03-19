@@ -49,7 +49,7 @@ export function Panel({
   className
 }: {
   title?: string;
-  description?: string;
+  description?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {

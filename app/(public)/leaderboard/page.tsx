@@ -82,7 +82,16 @@ export default async function LeaderboardPage({
         </Panel>
       </section>
       {topThree.length > 0 ? (
-        <Panel title="상위 러너" description="현재 가장 앞선 러너를 빠르게 확인할 수 있습니다.">
+        <Panel
+          title="상위 러너"
+          description={
+            <>
+              현재 가장 앞선 러너를 빠르게 확인할 수 있습니다.
+              <br />
+              챌린지는 기록경쟁이 아니니 참고용으로 보시면 좋습니다.
+            </>
+          }
+        >
           <div className="grid gap-3 lg:grid-cols-3">
             {topThree.map((entry, index) => (
               <div
@@ -122,7 +131,7 @@ export default async function LeaderboardPage({
           </div>
         </Panel>
       ) : null}
-      <Panel title="전체 순위" description="참가자 수가 많아져도 빠르게 비교할 수 있도록 핵심 정보만 보여줍니다.">
+      <Panel title="전체 순위" description="전체 참가자 정보">
         {entries.length === 0 ? (
           <EmptyState title="표시할 참가자가 없습니다." description="필터 조건을 다시 확인해주세요." />
         ) : (
