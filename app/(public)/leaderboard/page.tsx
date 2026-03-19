@@ -131,7 +131,7 @@ export default async function LeaderboardPage({
           </div>
         </Panel>
       ) : null}
-      <Panel title="전체 순위" description="전체 참가자 정보">
+      <Panel title="전체 참가자 정보">
         {entries.length === 0 ? (
           <EmptyState title="표시할 참가자가 없습니다." description="필터 조건을 다시 확인해주세요." />
         ) : (
