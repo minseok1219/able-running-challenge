@@ -168,13 +168,22 @@ export default async function DashboardPage() {
             </h3>
             <p className="mt-2 text-sm text-slate-700">
               {latestEarnedBadge
-                ? `${latestEarnedBadge.name} 배지를 획득했습니다. 다음 목표도 이어서 도전해보세요.`
+                ? latestEarnedBadge.message
                 : "첫 승인 기록을 남기면 첫 배지가 열립니다."}
             </p>
             {latestEarnedBadge?.unlockedAt ? (
-              <p className="mt-3 text-xs font-medium text-amber-800">
-                최근 획득: {latestEarnedBadge.name} · {formatDate(latestEarnedBadge.unlockedAt)}
-              </p>
+              <div className="mt-4 rounded-2xl bg-white/70 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <BadgeCategoryChip category={latestEarnedBadge.category} tone="earned" />
+                  <p className="text-sm font-semibold text-slate-900">{latestEarnedBadge.name}</p>
+                </div>
+                <p className="mt-2 text-xs font-medium text-amber-800">
+                  최근 획득 · {formatDate(latestEarnedBadge.unlockedAt)}
+                </p>
+                {latestEarnedBadge.nextHint ? (
+                  <p className="mt-2 text-xs leading-5 text-slate-600">{latestEarnedBadge.nextHint}</p>
+                ) : null}
+              </div>
             ) : null}
           </div>
           <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
@@ -184,10 +193,16 @@ export default async function DashboardPage() {
             {nextBadge ? (
               <>
                 <h3 className="mt-3 text-xl font-semibold text-slate-900">{nextBadge.name}</h3>
-                <p className="mt-2 text-sm text-slate-600">{nextBadge.description}</p>
+                <div className="mt-3">
+                  <BadgeCategoryChip category={nextBadge.category} tone="locked" />
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{nextBadge.description}</p>
                 <p className="mt-4 inline-flex rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-700">
                   {nextBadge.progressText}
                 </p>
+                {nextBadge.nextHint ? (
+                  <p className="mt-3 text-sm leading-6 text-slate-700">{nextBadge.nextHint}</p>
+                ) : null}
               </>
             ) : (
               <>
@@ -214,26 +229,29 @@ export default async function DashboardPage() {
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-amber-200/50 to-transparent" />
                   <div className="relative flex items-start gap-4">
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-amber-300 bg-gradient-to-br from-yellow-200 via-amber-100 to-orange-100 text-3xl text-amber-700 shadow-sm">
-                      {index === 0 ? "🏅" : index === 1 ? "🥇" : "🏆"}
+                      {getBadgeIcon(badge.category, true, index)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div>
+                          <BadgeCategoryChip category={badge.category} tone="earned" />
                           <p className="font-semibold text-slate-900">{badge.name}</p>
-                          <p className="mt-1 text-sm text-slate-600">{badge.description}</p>
+                          <p className="mt-1 text-sm leading-6 text-slate-700">{badge.message}</p>
                         </div>
                         <span className="inline-flex whitespace-nowrap rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
                           획득 완료
                         </span>
                       </div>
                       <div className="mt-4 rounded-2xl bg-white/80 p-3">
-                        <p className="text-sm font-medium text-slate-700">{badge.progressText}</p>
+                        <p className="text-sm font-medium text-slate-700">{badge.description}</p>
                         <p className="mt-1 text-xs text-slate-500">
                           달성일 {formatDate(badge.unlockedAt!)}
                         </p>
-                        <p className="mt-2 text-xs font-semibold text-amber-700">
-                          축하합니다. 이 마일스톤을 달성했습니다.
-                        </p>
+                        {badge.nextHint ? (
+                          <p className="mt-2 text-xs font-semibold leading-5 text-amber-700">
+                            {badge.nextHint}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -262,13 +280,14 @@ export default async function DashboardPage() {
             >
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-2xl text-slate-400">
-                  ○
+                  {getBadgeIcon(badge.category, false)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div>
+                      <BadgeCategoryChip category={badge.category} tone="locked" />
                       <p className="font-semibold">{badge.name}</p>
-                      <p className="mt-1 text-sm text-slate-600">{badge.description}</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{badge.description}</p>
                     </div>
                     <span className="inline-flex whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
                       진행 중
@@ -276,7 +295,11 @@ export default async function DashboardPage() {
                   </div>
                   <div className="mt-4 grid gap-1">
                     <p className="text-sm font-medium text-slate-700">{badge.progressText}</p>
-                    <p className="text-xs text-slate-500">아직 달성 전</p>
+                    {badge.nextHint ? (
+                      <p className="text-xs leading-5 text-slate-500">{badge.nextHint}</p>
+                    ) : (
+                      <p className="text-xs text-slate-500">아직 달성 전</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -379,4 +402,60 @@ function StatusSummaryRow({
       </div>
     </div>
   );
+}
+
+function BadgeCategoryChip({
+  category,
+  tone
+}: {
+  category: string;
+  tone: "earned" | "locked";
+}) {
+  return (
+    <span
+      className={`mb-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] ${
+        tone === "earned" ? "bg-amber-100 text-amber-800" : "bg-slate-200 text-slate-600"
+      }`}
+    >
+      {category}
+    </span>
+  );
+}
+
+function getBadgeIcon(category: string, earned: boolean, index = 0) {
+  if (!earned) {
+    switch (category) {
+      case "시작 배지":
+        return "◎";
+      case "누적 거리 배지":
+        return "◌";
+      case "주차 미션 배지":
+        return "◐";
+      case "꾸준함 배지":
+        return "◒";
+      case "에이블 스타일 배지":
+        return "◍";
+      default:
+        return "○";
+    }
+  }
+
+  if (index === 0) {
+    return "🏅";
+  }
+
+  switch (category) {
+    case "시작 배지":
+      return "🚀";
+    case "누적 거리 배지":
+      return "🏁";
+    case "주차 미션 배지":
+      return "📆";
+    case "꾸준함 배지":
+      return "🔥";
+    case "에이블 스타일 배지":
+      return "🛡️";
+    default:
+      return "🏆";
+  }
 }

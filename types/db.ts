@@ -91,20 +91,50 @@ export type ChartPoint = {
   distanceKm: number;
 };
 
+export type BadgeCategory =
+  | "시작 배지"
+  | "누적 거리 배지"
+  | "주차 미션 배지"
+  | "꾸준함 배지"
+  | "에이블 스타일 배지";
+
+export type BadgeCode =
+  | "first_upload"
+  | "first_week_entry"
+  | "first_week_half"
+  | "distance_10km"
+  | "distance_25km"
+  | "distance_50km"
+  | "distance_75km"
+  | "distance_100km"
+  | "streak_7days"
+  | "weekly_goal"
+  | "weekly_2_streak"
+  | "weekly_4_streak"
+  | "final_week_entry"
+  | "final_week_goal"
+  | "record_3"
+  | "record_5"
+  | "week_3_runs"
+  | "weekend_run"
+  | "late_sprint"
+  | "quiet_accumulation"
+  | "steady_week"
+  | "finishers_mindset"
+  | "show_dont_tell"
+  | "half_finish"
+  | "challenge_finish";
+
 export type BadgeProgress = {
-  code:
-    | "first_upload"
-    | "distance_10km"
-    | "distance_25km"
-    | "distance_50km"
-    | "streak_7days"
-    | "half_finish"
-    | "challenge_finish";
+  code: BadgeCode;
+  category: BadgeCategory;
   name: string;
   description: string;
   achieved: boolean;
   unlockedAt: string | null;
   progressText: string;
+  message: string;
+  nextHint: string;
 };
 
 export type AdminActionLog = {
