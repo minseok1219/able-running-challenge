@@ -12,6 +12,7 @@ import {
   hasSupabaseEnv
 } from "@/lib/config/runtime";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { getTodayDateString } from "@/lib/utils/format";
 import type {
   AdminParticipantDetail,
   AdminParticipantSummary,
@@ -29,6 +30,37 @@ function firstOrNull<T>(value: T | T[] | null | undefined): T | null {
   }
 
   return value ?? null;
+}
+
+function getRecentWeekStartDate() {
+  const end = new Date(`${getTodayDateString()}T00:00:00+09:00`);
+  end.setDate(end.getDate() - 6);
+  return end.toISOString().slice(0, 10);
+}
+
+function getRecentApprovedWeekRecords(records: RecordRow[]) {
+  const recentWeekStart = getRecentWeekStartDate();
+
+  return records
+    .filter(
+      (record) =>
+        record.status === "approved" &&
+        record.run_date >= recentWeekStart &&
+        record.run_date <= getTodayDateString()
+    )
+    .sort((a, b) => {
+      if (a.run_date === b.run_date) {
+        return b.created_at.localeCompare(a.created_at);
+      }
+
+      return b.run_date.localeCompare(a.run_date);
+    })
+    .slice(0, 7)
+    .map((record) => ({
+      runDate: record.run_date,
+      distanceM: record.distance_m,
+      paceSecPerKm: record.pace_sec_per_km
+    }));
 }
 
 export const getPublicSetupData = cache(async () => {
@@ -133,7 +165,7 @@ export async function getLeaderboard({
     const query = supabase
       .from("users")
       .select(
-        "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date), records(distance_m, status, run_date)"
+        "id, name, username, participant_code, role, branches:branch_id(name, code), challenge_types:challenge_type_id(name, code, target_distance_m, start_date), records(distance_m, pace_sec_per_km, status, run_date, created_at)"
       )
       .eq("role", "participant")
       .eq("is_active", true);
@@ -158,6 +190,7 @@ export async function getLeaderboard({
           (record: { status: string }) => record.status === "warning"
         ).length;
         const targetDistanceM = challenge?.target_distance_m ?? 1;
+        const recentWeekRecords = getRecentApprovedWeekRecords(activeRecords as RecordRow[]);
 
         return {
           userId: row.id,
@@ -170,7 +203,8 @@ export async function getLeaderboard({
           targetDistanceM,
           approvedDistanceM,
           progress: approvedDistanceM / targetDistanceM,
-          warningCount
+          warningCount,
+          recentWeekRecords
         } satisfies LeaderboardEntry;
       });
 

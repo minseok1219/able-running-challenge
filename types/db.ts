@@ -84,6 +84,11 @@ export type LeaderboardEntry = {
   approvedDistanceM: number;
   progress: number;
   warningCount: number;
+  recentWeekRecords: Array<{
+    runDate: string;
+    distanceM: number;
+    paceSecPerKm: number;
+  }>;
 };
 
 export type ChartPoint = {
