@@ -124,8 +124,9 @@ export default async function LeaderboardPage({
                       <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
                         {entry.challengeName}
                       </span>
-                      <span className="text-xs font-semibold text-slate-500 transition group-open:rotate-180">
-                        펼치기
+                      <span className="text-xs font-semibold text-slate-500">
+                        <span className="group-open:hidden">펼치기</span>
+                        <span className="hidden group-open:inline">닫기</span>
                       </span>
                     </div>
                   </div>
@@ -173,7 +174,8 @@ export default async function LeaderboardPage({
                           </p>
                         </div>
                         <span className="shrink-0 text-xs font-semibold text-slate-500 transition group-open:rotate-180">
-                          펼치기
+                          <span className="group-open:hidden">펼치기</span>
+                          <span className="hidden group-open:inline">닫기</span>
                         </span>
                       </div>
                       <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-700">
@@ -204,8 +206,9 @@ export default async function LeaderboardPage({
                       <div className="text-right text-sm font-semibold text-slate-900">
                         {formatDistanceKm(entry.approvedDistanceM)}
                       </div>
-                      <div className="text-right text-xs font-semibold text-slate-500 transition group-open:rotate-180">
-                        펼치기
+                      <div className="text-right text-xs font-semibold text-slate-500">
+                        <span className="group-open:hidden">펼치기</span>
+                        <span className="hidden group-open:inline">닫기</span>
                       </div>
                     </div>
                   </summary>
