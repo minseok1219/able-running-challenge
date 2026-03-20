@@ -96,26 +96,6 @@ export function RecordForm({
 }) {
   return (
     <form action={action} className="grid gap-5">
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-orange-50/40 to-white p-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Quick Guide</p>
-          <h3 className="mt-3 text-xl font-semibold text-slate-900">
-            {record ? "기록을 수정하면 상태가 다시 판정됩니다." : "입력 후 바로 자동 판정됩니다."}
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            거리와 페이스만 정확히 입력하면 시스템이 승인, 경고, 거절 상태를 자동으로 계산합니다.
-          </p>
-        </div>
-        <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 shadow-sm">
-          <p className="text-sm font-semibold text-slate-900">입력 규칙</p>
-          <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-600">
-            <li>거리는 km 단위 입력 · 예: 5.2</li>
-            <li>평균 페이스는 mm:ss 형식 · 예: 5:30</li>
-            <li>기록 메모는 선택 입력입니다</li>
-          </ul>
-        </div>
-      </div>
-
       <div className="grid gap-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
@@ -162,6 +142,26 @@ export function RecordForm({
           </p>
         </div>
         <SubmitButton>{record ? "기록 수정" : "기록 저장"}</SubmitButton>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-orange-50/40 to-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Quick Guide</p>
+          <h3 className="mt-3 text-xl font-semibold text-slate-900">
+            {record ? "기록을 수정하면 상태가 다시 판정됩니다." : "입력 후 바로 자동 판정됩니다."}
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            거리와 페이스만 정확히 입력하면 시스템이 승인, 경고, 거절 상태를 자동으로 계산합니다.
+          </p>
+        </div>
+        <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-900">입력 규칙</p>
+          <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-600">
+            <li>거리는 km 단위 입력 · 예: 5.2</li>
+            <li>평균 페이스는 mm:ss 형식 · 예: 5:30</li>
+            <li>기록 메모는 선택 입력입니다</li>
+          </ul>
+        </div>
       </div>
     </form>
   );
