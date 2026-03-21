@@ -17,10 +17,17 @@ import type {
   WeeklyProgressSummary
 } from "@/types/db";
 
+const KOREA_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
+
 function addDays(dateString: string, days: number) {
-  const date = new Date(`${dateString}T00:00:00+09:00`);
+  const date = new Date(`${dateString}T12:00:00+09:00`);
   date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return KOREA_DATE_FORMATTER.format(date);
 }
 
 const WEEKLY_RULES: Record<string, WeeklyChallengeRule[]> = {
