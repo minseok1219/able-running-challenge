@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.crossfitable.arc-backup</string>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/leo/Documents/Playground</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/local/bin/node</string>
+      <string>/Users/leo/Documents/Playground/scripts/backup-export.mjs</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+      <key>Hour</key>
+      <integer>3</integer>
+      <key>Minute</key>
+      <integer>15</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/leo/Documents/Playground/backups/logs/backup-export.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/leo/Documents/Playground/backups/logs/backup-export-error.log</string>
+  </dict>
+</plist>

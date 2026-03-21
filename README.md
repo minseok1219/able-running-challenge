@@ -150,6 +150,20 @@ ALLOW_LOCAL_CHALLENGE_TESTING=false
 4. 관리자에서 이상 기록 검토
 5. 필요 시 참가자 비활성화
 
+백업 운영
+
+- 무료 플랜 기준으로도 참가자/기록 데이터 JSON 백업을 만들 수 있습니다.
+- 수동 백업 실행:
+  - `npm run backup:export`
+- 백업 파일 저장 위치:
+  - [backups](/Users/leo/Documents/Playground/backups)
+- 자동 백업 설정 가이드:
+  - [backup-guide.md](/Users/leo/Documents/Playground/docs/backup-guide.md)
+- 권장 주기:
+  - 매일 자동 백업 1회
+  - 주 1회 NAS 또는 외부 저장소로 추가 복사
+  - 챌린지 시작 전/초기화 전 수동 백업 1회
+
 ## 9. 남은 개선 포인트
 
 - `server-only`와 테스트 코드 추가
