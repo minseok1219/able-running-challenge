@@ -138,10 +138,12 @@ export function RecordForm({
             {record ? "수정 저장 후 상태가 다시 계산됩니다." : "저장 즉시 기록이 반영됩니다."}
           </p>
           <p className="mt-1 text-sm text-slate-600">
-            승인 기록만 누적 거리, 차트, 리더보드에 반영됩니다.
+            승인 기록만 누적 거리, 차트, 리더보드에 반영되며 저장 중에는 버튼이 잠깁니다.
           </p>
         </div>
-        <SubmitButton>{record ? "기록 수정" : "기록 저장"}</SubmitButton>
+        <SubmitButton pendingText={record ? "수정 저장 중..." : "기록 저장 중..."}>
+          {record ? "기록 수정" : "기록 저장"}
+        </SubmitButton>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">

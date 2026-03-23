@@ -49,7 +49,7 @@ export default async function AdminRecordsPage({
           </div>
         </Panel>
 
-        <Panel title="작업 결과" description="최근 관리자 상태 변경 및 기록 수정 로그입니다.">
+        <Panel title="작업 결과" description="최근 관리자 작업 로그입니다. 기록 검토와 참가자 관리 이력이 함께 표시됩니다.">
           <AlertMessage message={params.error} />
           <AlertMessage
             type="success"
@@ -59,7 +59,7 @@ export default async function AdminRecordsPage({
             {recentActions.length === 0 ? (
               <p className="text-sm text-slate-500">아직 기록된 관리자 작업이 없습니다.</p>
             ) : (
-              <div className="grid gap-3">
+              <div className="grid max-h-[34rem] gap-3 overflow-y-auto pr-1">
                 {recentActions.map((action) => (
                   <div
                     key={action.id}
@@ -77,7 +77,7 @@ export default async function AdminRecordsPage({
                       {action.participantCode ? ` · ${action.participantCode}` : ""}
                     </p>
                     <div className="mt-2 grid gap-1 text-sm text-slate-600">
-                      <p>{action.runDate ? `${formatDate(action.runDate)} 기록` : "기록 작업"}</p>
+                      <p>{getAdminActionContextLabel(action)}</p>
                       {action.previousStatus || action.newStatus ? (
                         <p>
                           상태: {action.previousStatus ? getStatusLabel(action.previousStatus) : "-"} →{" "}
@@ -290,5 +290,28 @@ function getAdminActionLabel(actionType: AdminActionType) {
   if (actionType === "approve") return "상태 승인";
   if (actionType === "warn") return "상태 경고";
   if (actionType === "reject") return "상태 거절";
+  if (actionType === "participant_activate") return "참가자 활성화";
+  if (actionType === "participant_deactivate") return "참가자 비활성화";
+  if (actionType === "participant_delete") return "참가자 삭제";
+  if (actionType === "participant_branch_update") return "지점 변경";
   return "기록 수정";
+}
+
+function getAdminActionContextLabel(action: {
+  actionType: AdminActionType;
+  runDate: string | null;
+}) {
+  if (action.runDate) {
+    return `${formatDate(action.runDate)} 기록`;
+  }
+
+  if (action.actionType === "participant_branch_update") {
+    return "참가자 지점 변경";
+  }
+
+  if (action.actionType === "participant_delete") {
+    return "참가자 계정 삭제";
+  }
+
+  return "참가자 계정 작업";
 }

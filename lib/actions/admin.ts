@@ -17,30 +17,72 @@ function actionTypeFromStatus(status: RecordStatus): AdminActionType {
   return "reject";
 }
 
+const LEGACY_ADMIN_ACTION_TYPES = new Set<AdminActionType>(["approve", "warn", "reject", "edit"]);
+
 async function logAdminAction({
   adminUserId,
-  recordId,
   actionType,
+  recordId,
+  participantUserId,
+  participantName,
+  participantUsername,
+  participantCode,
+  runDate,
   previousStatus,
   newStatus,
   memo
 }: {
   adminUserId: string;
-  recordId: string;
   actionType: AdminActionType;
+  recordId?: string | null;
+  participantUserId?: string | null;
+  participantName?: string | null;
+  participantUsername?: string | null;
+  participantCode?: string | null;
+  runDate?: string | null;
   previousStatus?: string | null;
   newStatus?: string | null;
   memo?: string | null;
 }) {
   const supabase = getSupabaseAdmin();
-  await supabase.from("admin_actions").insert({
+  const payload = {
     admin_user_id: adminUserId,
-    record_id: recordId,
+    record_id: recordId ?? null,
     action_type: actionType,
+    participant_user_id: participantUserId ?? null,
+    participant_name: participantName ?? null,
+    participant_username: participantUsername ?? null,
+    participant_code: participantCode ?? null,
+    run_date: runDate ?? null,
     previous_status: previousStatus ?? null,
     new_status: newStatus ?? null,
     memo: memo ?? null
-  });
+  };
+
+  const { error } = await supabase.from("admin_actions").insert(payload);
+  if (!error) {
+    return;
+  }
+
+  if (recordId && LEGACY_ADMIN_ACTION_TYPES.has(actionType)) {
+    const { error: legacyError } = await supabase.from("admin_actions").insert({
+      admin_user_id: adminUserId,
+      record_id: recordId,
+      action_type: actionType,
+      previous_status: previousStatus ?? null,
+      new_status: newStatus ?? null,
+      memo: memo ?? null
+    });
+
+    if (!legacyError) {
+      return;
+    }
+
+    console.error("[admin-actions]", legacyError.message);
+    return;
+  }
+
+  console.error("[admin-actions]", error.message);
 }
 
 function buildAdminRedirect(path: string, params: Record<string, string>) {
@@ -65,13 +107,15 @@ export async function changeRecordStatusAction(formData: FormData) {
 
     const { data: existing, error: fetchError } = await supabase
       .from("records")
-      .select("id, status")
+      .select("id, status, run_date, users!inner(id, name, username, participant_code)")
       .eq("id", recordId)
       .single();
 
     if (fetchError || !existing) {
       throw new Error("대상 기록을 찾지 못했습니다.");
     }
+
+    const participant = Array.isArray(existing.users) ? existing.users[0] : existing.users;
 
     const { error } = await supabase
       .from("records")
@@ -92,6 +136,11 @@ export async function changeRecordStatusAction(formData: FormData) {
       adminUserId: admin.id,
       recordId,
       actionType: actionTypeFromStatus(nextStatus),
+      participantUserId: participant?.id ?? null,
+      participantName: participant?.name ?? null,
+      participantUsername: participant?.username ?? null,
+      participantCode: participant?.participant_code ?? null,
+      runDate: existing.run_date,
       previousStatus: existing.status,
       newStatus: nextStatus,
       memo
@@ -128,7 +177,7 @@ export async function adminEditRecordAction(formData: FormData) {
     const { data: record, error: recordError } = await supabase
       .from("records")
       .select(
-        "id, user_id, status, run_date, distance_m, users!inner(challenge_types:challenge_type_id!inner(start_date, end_date))"
+        "id, user_id, status, run_date, distance_m, users!inner(id, name, username, participant_code, challenge_types:challenge_type_id!inner(start_date, end_date))"
       )
       .eq("id", recordId)
       .single();
@@ -188,6 +237,11 @@ export async function adminEditRecordAction(formData: FormData) {
       adminUserId: admin.id,
       recordId,
       actionType: "edit",
+      participantUserId: userRelation.id,
+      participantName: userRelation.name,
+      participantUsername: userRelation.username,
+      participantCode: userRelation.participant_code,
+      runDate,
       previousStatus: record.status,
       newStatus: statusResult.status,
       memo
@@ -223,7 +277,7 @@ export async function toggleParticipantActiveAction(formData: FormData) {
 
     const { data: targetUser, error: fetchError } = await supabase
       .from("users")
-      .select("id, role, is_active")
+      .select("id, role, is_active, name, username, participant_code")
       .eq("id", userId)
       .single();
 
@@ -242,8 +296,19 @@ export async function toggleParticipantActiveAction(formData: FormData) {
       throw new Error("참가자 상태 변경에 실패했습니다.");
     }
 
+    await logAdminAction({
+      adminUserId: session.id,
+      actionType: nextActive ? "participant_activate" : "participant_deactivate",
+      participantUserId: targetUser.id,
+      participantName: targetUser.name,
+      participantUsername: targetUser.username,
+      participantCode: targetUser.participant_code,
+      memo: `상태 변경: ${targetUser.is_active ? "활성" : "비활성"} -> ${nextActive ? "활성" : "비활성"}`
+    });
+
     revalidatePath("/admin/participants");
     revalidatePath("/admin/overview");
+    revalidatePath("/admin/records");
     revalidatePath("/leaderboard");
     redirect(`/admin/participants?updated=${nextActive ? "activated" : "deactivated"}`);
   } catch (error) {
@@ -280,7 +345,7 @@ export async function deleteParticipantAction(formData: FormData) {
 
     const { data: targetUser, error: fetchError } = await supabase
       .from("users")
-      .select("id, role, name")
+      .select("id, role, name, username, participant_code")
       .eq("id", userId)
       .single();
 
@@ -293,6 +358,15 @@ export async function deleteParticipantAction(formData: FormData) {
     if (error) {
       throw new Error("참가자 삭제에 실패했습니다.");
     }
+
+    await logAdminAction({
+      adminUserId: admin.id,
+      actionType: "participant_delete",
+      participantName: targetUser.name,
+      participantUsername: targetUser.username,
+      participantCode: targetUser.participant_code,
+      memo: "참가자 계정 및 연관 기록 삭제"
+    });
 
     revalidatePath("/admin/participants");
     revalidatePath("/admin/overview");
@@ -329,7 +403,7 @@ export async function updateParticipantBranchAction(formData: FormData) {
 
     const { data: targetUser, error: fetchError } = await supabase
       .from("users")
-      .select("id, role, branch_id")
+      .select("id, role, branch_id, name, username, participant_code, branches:branch_id(name)")
       .eq("id", userId)
       .single();
 
@@ -339,7 +413,7 @@ export async function updateParticipantBranchAction(formData: FormData) {
 
     const { data: branch, error: branchError } = await supabase
       .from("branches")
-      .select("id")
+      .select("id, name")
       .eq("id", branchId)
       .single();
 
@@ -358,9 +432,22 @@ export async function updateParticipantBranchAction(formData: FormData) {
       throw new Error("지점 수정에 실패했습니다.");
     }
 
+    const currentBranch = Array.isArray(targetUser.branches) ? targetUser.branches[0] : targetUser.branches;
+
+    await logAdminAction({
+      adminUserId: session.id,
+      actionType: "participant_branch_update",
+      participantUserId: targetUser.id,
+      participantName: targetUser.name,
+      participantUsername: targetUser.username,
+      participantCode: targetUser.participant_code,
+      memo: `지점 변경: ${currentBranch?.name ?? "미지정"} -> ${branch.name}`
+    });
+
     revalidatePath("/admin/participants");
     revalidatePath(`/admin/participants/${userId}`);
     revalidatePath("/admin/overview");
+    revalidatePath("/admin/records");
     revalidatePath("/leaderboard");
     revalidatePath("/dashboard");
     redirect(buildAdminRedirect(`/admin/participants/${userId}`, { updated: "branch" }));

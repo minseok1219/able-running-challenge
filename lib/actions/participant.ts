@@ -35,6 +35,43 @@ function buildRecordRedirect(path: string, params: Record<string, string>) {
   return `${url.pathname}${url.search}`;
 }
 
+const DUPLICATE_RECORD_WINDOW_MS = 60 * 1000;
+
+async function findRecentDuplicateRecord({
+  userId,
+  runDate,
+  distanceM,
+  paceSecPerKm,
+  note
+}: {
+  userId: string;
+  runDate: string;
+  distanceM: number;
+  paceSecPerKm: number;
+  note: string | null;
+}) {
+  const supabase = getSupabaseAdmin();
+  let query = supabase
+    .from("records")
+    .select("id, created_at")
+    .eq("user_id", userId)
+    .eq("run_date", runDate)
+    .eq("distance_m", distanceM)
+    .eq("pace_sec_per_km", paceSecPerKm)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  query = note ? query.eq("note", note) : query.is("note", null);
+
+  const { data, error } = await query;
+  if (error || !data) {
+    throw new Error("기록 중복 확인에 실패했습니다.");
+  }
+
+  const threshold = Date.now() - DUPLICATE_RECORD_WINDOW_MS;
+  return data.find((record) => new Date(record.created_at).getTime() >= threshold) ?? null;
+}
+
 async function buildAutoStatus({
   userId,
   runDate,
@@ -93,6 +130,21 @@ export async function createRecordAction(formData: FormData) {
       challengeStart: user.challenge_types.start_date,
       challengeEnd: user.challenge_types.end_date
     });
+
+    const recentDuplicate = await findRecentDuplicateRecord({
+      userId: user.id,
+      runDate,
+      distanceM,
+      paceSecPerKm,
+      note
+    });
+
+    if (recentDuplicate) {
+      revalidatePath("/dashboard");
+      revalidatePath("/records");
+      revalidatePath("/leaderboard");
+      redirect("/records?saved=1");
+    }
 
     const supabase = getSupabaseAdmin();
     const { error } = await supabase.from("records").insert({

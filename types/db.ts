@@ -1,6 +1,14 @@
 export type UserRole = "participant" | "admin";
 export type RecordStatus = "approved" | "warning" | "rejected";
-export type AdminActionType = "approve" | "warn" | "reject" | "edit";
+export type AdminActionType =
+  | "approve"
+  | "warn"
+  | "reject"
+  | "edit"
+  | "participant_activate"
+  | "participant_deactivate"
+  | "participant_delete"
+  | "participant_branch_update";
 
 export type Branch = {
   id: string;

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "backup:export": "node scripts/backup-export.mjs"
+    "backup:export": "node scripts/backup-export.mjs",
+    "backup:nas-sync": "node scripts/backup-sync-to-nas.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",

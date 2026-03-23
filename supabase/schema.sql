@@ -53,12 +53,39 @@ create table if not exists records (
 create table if not exists admin_actions (
   id uuid primary key default gen_random_uuid(),
   admin_user_id uuid not null references users(id),
-  record_id uuid not null references records(id) on delete cascade,
-  action_type text not null check (action_type in ('approve', 'warn', 'reject', 'edit')),
+  record_id uuid references records(id) on delete set null,
+  participant_user_id uuid references users(id) on delete set null,
+  participant_name text,
+  participant_username text,
+  participant_code text,
+  run_date date,
+  action_type text not null check (
+    action_type in (
+      'approve',
+      'warn',
+      'reject',
+      'edit',
+      'participant_activate',
+      'participant_deactivate',
+      'participant_delete',
+      'participant_branch_update'
+    )
+  ),
   previous_status text,
   new_status text,
   memo text,
   created_at timestamptz not null default now()
+);
+
+create table if not exists login_attempts (
+  key text primary key,
+  scope text not null check (scope in ('participant', 'admin')),
+  dimension text not null check (dimension in ('account', 'ip')),
+  subject text not null,
+  attempt_count int not null default 0,
+  first_attempt_at timestamptz not null default now(),
+  blocked_until timestamptz,
+  updated_at timestamptz not null default now()
 );
 
 create or replace function set_updated_at()
@@ -89,9 +116,13 @@ create index if not exists idx_users_challenge on users(challenge_type_id);
 create index if not exists idx_records_user_run_date on records(user_id, run_date);
 create index if not exists idx_records_status on records(status);
 create index if not exists idx_admin_actions_record on admin_actions(record_id);
+create index if not exists idx_admin_actions_participant_user on admin_actions(participant_user_id);
+create index if not exists idx_login_attempts_scope on login_attempts(scope);
+create index if not exists idx_login_attempts_blocked_until on login_attempts(blocked_until);
 
 alter table branches enable row level security;
 alter table challenge_types enable row level security;
 alter table users enable row level security;
 alter table records enable row level security;
 alter table admin_actions enable row level security;
+alter table login_attempts enable row level security;

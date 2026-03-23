@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/lib/auth/session";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import {
+  buildLoginAttemptTargets,
   assertLoginAttemptsAllowed,
   clearFailedLoginAttempts,
   recordFailedLoginAttempt
@@ -30,6 +32,20 @@ function buildRedirect(path: string, params: Record<string, string>) {
   const url = new URL(path, "http://localhost");
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   return `${url.pathname}${url.search}`;
+}
+
+async function getClientIpAddress() {
+  const requestHeaders = await headers();
+  const forwardedFor = requestHeaders.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() ?? null;
+  }
+
+  return (
+    requestHeaders.get("x-real-ip")?.trim() ??
+    requestHeaders.get("cf-connecting-ip")?.trim() ??
+    null
+  );
 }
 
 export async function signupAction(formData: FormData) {
@@ -130,7 +146,11 @@ async function findUserByCredentials({
 export async function participantLoginAction(formData: FormData) {
   const username = String(formData.get("username") ?? "").trim().toLowerCase();
   const rememberUsername = formData.get("remember_username") === "on";
-  const rateLimitKey = `participant:${username}`;
+  const rateLimitTargets = buildLoginAttemptTargets({
+    scope: "participant",
+    identifier: username,
+    ipAddress: await getClientIpAddress()
+  });
 
   try {
     if (!hasSupabaseEnv()) {
@@ -140,7 +160,7 @@ export async function participantLoginAction(formData: FormData) {
     const password = String(formData.get("password") ?? "");
 
     validateParticipantLoginInput(username, password);
-    assertLoginAttemptsAllowed(rateLimitKey);
+    await assertLoginAttemptsAllowed(rateLimitTargets);
     const user = await findUserByCredentials({
       field: "username",
       value: username,
@@ -162,13 +182,13 @@ export async function participantLoginAction(formData: FormData) {
     } else {
       await clearRememberedUsernameCookie();
     }
-    clearFailedLoginAttempts(rateLimitKey);
+    await clearFailedLoginAttempts(rateLimitTargets);
     revalidatePath("/dashboard");
     redirect("/dashboard");
   } catch (error) {
     rethrowIfRedirectError(error);
-    if (username) {
-      recordFailedLoginAttempt(rateLimitKey);
+    if (rateLimitTargets.length > 0) {
+      await recordFailedLoginAttempt(rateLimitTargets);
     }
     redirect(
       buildRedirect("/login", {
@@ -180,7 +200,11 @@ export async function participantLoginAction(formData: FormData) {
 
 export async function adminLoginAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
-  const rateLimitKey = `admin:${name.toLowerCase()}`;
+  const rateLimitTargets = buildLoginAttemptTargets({
+    scope: "admin",
+    identifier: name,
+    ipAddress: await getClientIpAddress()
+  });
 
   try {
     if (!hasSupabaseEnv()) {
@@ -190,7 +214,7 @@ export async function adminLoginAction(formData: FormData) {
     const password = String(formData.get("password") ?? "");
 
     validateAdminLoginInput(name, password);
-    assertLoginAttemptsAllowed(rateLimitKey);
+    await assertLoginAttemptsAllowed(rateLimitTargets);
     const user = await findUserByCredentials({
       field: "name",
       value: name,
@@ -207,13 +231,13 @@ export async function adminLoginAction(formData: FormData) {
     };
 
     await createSessionCookie(sessionUser);
-    clearFailedLoginAttempts(rateLimitKey);
+    await clearFailedLoginAttempts(rateLimitTargets);
     revalidatePath("/admin/overview");
     redirect("/admin/overview");
   } catch (error) {
     rethrowIfRedirectError(error);
-    if (name) {
-      recordFailedLoginAttempt(rateLimitKey);
+    if (rateLimitTargets.length > 0) {
+      await recordFailedLoginAttempt(rateLimitTargets);
     }
     redirect(
       buildRedirect("/admin/login", {

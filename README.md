@@ -155,6 +155,8 @@ ALLOW_LOCAL_CHALLENGE_TESTING=false
 - 무료 플랜 기준으로도 참가자/기록 데이터 JSON 백업을 만들 수 있습니다.
 - 수동 백업 실행:
   - `npm run backup:export`
+- NAS 주간 복사 실행:
+  - `npm run backup:nas-sync`
 - 백업 파일 저장 위치:
   - [backups](/Users/leo/Documents/Playground/backups)
 - 자동 백업 설정 가이드:

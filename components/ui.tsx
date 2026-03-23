@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils/cn";
 import type { RecordStatus } from "@/types/db";
+export { SubmitButton } from "@/components/submit-button";
 
 function getStatusLabel(status: RecordStatus) {
   if (status === "approved") return "승인";
@@ -204,17 +205,6 @@ export function Textarea({
         className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base"
       />
     </label>
-  );
-}
-
-export function SubmitButton({ children }: { children: ReactNode }) {
-  return (
-    <button
-      type="submit"
-      className="inline-flex items-center justify-center rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white hover:brightness-95"
-    >
-      {children}
-    </button>
   );
 }
 

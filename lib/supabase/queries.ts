@@ -353,7 +353,47 @@ export async function getAdminRecords() {
 
 export async function getRecentAdminActions(limit = 20) {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase
+  const enhancedQuery = await supabase
+    .from("admin_actions")
+    .select(
+      "id, action_type, previous_status, new_status, memo, created_at, run_date, participant_name, participant_username, participant_code, admin_user:admin_user_id(name), participants:participant_user_id(name, username, participant_code), records:record_id(id, run_date, users:user_id(name, username, participant_code))"
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (!enhancedQuery.error && enhancedQuery.data) {
+    return enhancedQuery.data.map((row) => {
+      const adminUser = firstOrNull(row.admin_user);
+      const participantUser = firstOrNull(row.participants);
+      const record = firstOrNull(row.records);
+      const recordParticipant = firstOrNull(record?.users);
+
+      return {
+        id: row.id,
+        actionType: row.action_type,
+        previousStatus: row.previous_status,
+        newStatus: row.new_status,
+        memo: row.memo,
+        createdAt: row.created_at,
+        adminName: adminUser?.name ?? "관리자",
+        runDate: row.run_date ?? record?.run_date ?? null,
+        participantName:
+          row.participant_name ?? participantUser?.name ?? recordParticipant?.name ?? "알 수 없음",
+        participantUsername:
+          row.participant_username ??
+          participantUser?.username ??
+          recordParticipant?.username ??
+          null,
+        participantCode:
+          row.participant_code ??
+          participantUser?.participant_code ??
+          recordParticipant?.participant_code ??
+          null
+      } satisfies AdminActionLog;
+    });
+  }
+
+  const legacyQuery = await supabase
     .from("admin_actions")
     .select(
       "id, action_type, previous_status, new_status, memo, created_at, admin_user:admin_user_id(name), records:record_id(id, run_date, users:user_id(name, username, participant_code))"
@@ -361,11 +401,11 @@ export async function getRecentAdminActions(limit = 20) {
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error || !data) {
+  if (legacyQuery.error || !legacyQuery.data) {
     throw new Error("관리자 작업 로그를 불러오지 못했습니다.");
   }
 
-  return data.map((row) => {
+  return legacyQuery.data.map((row) => {
     const adminUser = firstOrNull(row.admin_user);
     const record = firstOrNull(row.records);
     const participant = firstOrNull(record?.users);
