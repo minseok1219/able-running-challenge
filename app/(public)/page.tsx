@@ -55,11 +55,15 @@ export default async function HomePage() {
                     CrossFit ABLE 회원들과 함께 완주까지 이어가는 챌린지입니다.
                   </p>
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <ButtonLink href="/signup">지금 참가하기</ButtonLink>
-                  <ButtonLink href="/leaderboard" variant="secondary">
-                    현재 리더보드 보기
-                  </ButtonLink>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {session?.role === "participant" ? (
+              <ButtonLink href="/records/new">기록 입력</ButtonLink>
+            ) : (
+              <ButtonLink href="/signup">지금 참가하기</ButtonLink>
+            )}
+            <ButtonLink href="/leaderboard" variant="secondary">
+              현재 리더보드 보기
+            </ButtonLink>
                   {session ? (
                     <form action={logoutAction}>
                       <button
