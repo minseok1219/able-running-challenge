@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ParticipantNav } from "@/components/navigation";
 import { AppShell, AlertMessage, ButtonLink, EmptyState, Panel, StatusBadge } from "@/components/ui";
+import { deleteRecordAction } from "@/lib/actions/participant";
 import { requireRole, getCurrentUserRow } from "@/lib/auth/server";
 import { getParticipantRecords } from "@/lib/supabase/queries";
 import { formatDate, formatDistanceKm, formatPace, isEditableToday } from "@/lib/utils/format";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function RecordsPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string; saved?: string; updated?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; updated?: string; deleted?: string }>;
 }) {
   const params = await searchParams;
   const session = await requireRole("participant", "/login");
@@ -24,7 +25,7 @@ export default async function RecordsPage({
   return (
     <AppShell
       title="기록 내역"
-      description="본인 기록만 표시되며, 등록 당일에만 수정할 수 있습니다."
+      description="본인 기록만 표시되며, 등록 당일에만 수정하거나 삭제할 수 있습니다."
       actions={
         <>
           <ParticipantNav />
@@ -50,11 +51,17 @@ export default async function RecordsPage({
           <AlertMessage
             type="success"
             message={
-              params.saved ? "기록이 저장되었습니다." : params.updated ? "기록이 수정되었습니다." : undefined
+              params.saved
+                ? "기록이 저장되었습니다."
+                : params.updated
+                  ? "기록이 수정되었습니다."
+                  : params.deleted
+                    ? "기록이 삭제되었습니다."
+                    : undefined
             }
           />
           <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-600">
-            <p>기록은 등록 당일에만 수정할 수 있습니다.</p>
+            <p>기록은 등록 당일에만 수정하거나 삭제할 수 있습니다.</p>
             <p>승인 기록만 누적 거리와 리더보드에 반영됩니다.</p>
             <p>경고나 거절 사유가 있으면 각 기록 카드에서 바로 확인할 수 있습니다.</p>
           </div>
@@ -96,12 +103,22 @@ export default async function RecordsPage({
                   <div className="flex items-center gap-2">
                     <StatusBadge status={record.status} />
                     {isEditableToday(record.created_at) ? (
-                      <Link
-                        href={`/records/${record.id}/edit`}
-                        className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-slate-400"
-                      >
-                        수정
-                      </Link>
+                      <>
+                        <Link
+                          href={`/records/${record.id}/edit`}
+                          className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-slate-400"
+                        >
+                          수정
+                        </Link>
+                        <form action={deleteRecordAction.bind(null, record.id)}>
+                          <button
+                            type="submit"
+                            className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50"
+                          >
+                            삭제
+                          </button>
+                        </form>
+                      </>
                     ) : null}
                   </div>
                 </div>

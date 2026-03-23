@@ -195,6 +195,47 @@ export async function updateRecordAction(recordId: string, formData: FormData) {
   }
 }
 
+export async function deleteRecordAction(recordId: string) {
+  const session = await requireRole("participant", "/login");
+  const user = await getCurrentUserRow(session);
+  const supabase = getSupabaseAdmin();
+
+  try {
+    const { data: existing, error: fetchError } = await supabase
+      .from("records")
+      .select("id, created_at")
+      .eq("id", recordId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (fetchError || !existing) {
+      throw new Error("삭제할 기록을 찾지 못했습니다.");
+    }
+
+    if (!isEditableToday(existing.created_at)) {
+      throw new Error("기록은 등록한 당일에만 삭제할 수 있습니다.");
+    }
+
+    const { error } = await supabase.from("records").delete().eq("id", recordId).eq("user_id", user.id);
+
+    if (error) {
+      throw new Error("기록 삭제에 실패했습니다.");
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/records");
+    revalidatePath("/leaderboard");
+    redirect("/records?deleted=1");
+  } catch (error) {
+    rethrowIfRedirectError(error);
+    redirect(
+      buildRecordRedirect("/records", {
+        error: error instanceof Error ? error.message : "기록 삭제에 실패했습니다."
+      })
+    );
+  }
+}
+
 export async function getEditableRecord(recordId: string) {
   const session = await requireRole("participant", "/login");
   const user = await getCurrentUserRow(session);
