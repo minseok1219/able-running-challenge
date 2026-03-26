@@ -120,7 +120,7 @@ async function findUserByCredentials({
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role, is_active, created_at, updated_at"
+      "id, participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role, is_active, session_version, created_at, updated_at"
     )
     .eq(field, value)
     .eq("role", role)
@@ -173,7 +173,8 @@ export async function participantLoginAction(formData: FormData) {
       role: "participant",
       name: user.name,
       username: user.username,
-      participantCode: user.participant_code
+      participantCode: user.participant_code,
+      sessionVersion: user.session_version
     };
 
     await createSessionCookie(sessionUser);
@@ -227,7 +228,8 @@ export async function adminLoginAction(formData: FormData) {
       role: "admin",
       name: user.name,
       username: user.username,
-      participantCode: user.participant_code
+      participantCode: user.participant_code,
+      sessionVersion: user.session_version
     };
 
     await createSessionCookie(sessionUser);

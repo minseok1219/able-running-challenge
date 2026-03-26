@@ -5,6 +5,8 @@ import type { SessionUser } from "@/types/db";
 
 const SESSION_COOKIE = "arc_session";
 const REMEMBERED_USERNAME_COOKIE = "arc_remembered_username";
+const PARTICIPANT_SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+const ADMIN_SESSION_MAX_AGE = 60 * 60 * 12;
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -22,13 +24,14 @@ function sign(value: string) {
 export async function createSessionCookie(user: SessionUser) {
   const payload = Buffer.from(JSON.stringify(user)).toString("base64url");
   const signature = sign(payload);
+  const maxAge = user.role === "admin" ? ADMIN_SESSION_MAX_AGE : PARTICIPANT_SESSION_MAX_AGE;
 
   (await cookies()).set(SESSION_COOKIE, `${payload}.${signature}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7
+    maxAge
   });
 }
 

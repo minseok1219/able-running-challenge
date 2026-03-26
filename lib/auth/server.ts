@@ -12,7 +12,7 @@ async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("users")
-    .select("id, role, is_active")
+    .select("id, role, is_active, session_version")
     .eq("id", session.id)
     .maybeSingle();
 
@@ -21,6 +21,7 @@ async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
     !data ||
     !data.is_active ||
     data.role !== session.role ||
+    data.session_version !== session.sessionVersion ||
     !roles.includes(data.role as UserRole)
   ) {
     await clearSessionCookie();
@@ -53,7 +54,7 @@ export async function getCurrentUserRow(session: SessionUser): Promise<UserRow> 
   const { data, error } = await supabase
     .from("users")
     .select(
-      "id, participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role, is_active, created_at, updated_at, branches:branch_id(id, code, name, sort_order), challenge_types:challenge_type_id(id, code, name, target_distance_m, start_date, end_date, sort_order)"
+      "id, participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role, is_active, session_version, created_at, updated_at, branches:branch_id(id, code, name, sort_order), challenge_types:challenge_type_id(id, code, name, target_distance_m, start_date, end_date, sort_order)"
     )
     .eq("id", session.id)
     .single();

@@ -19,26 +19,9 @@ set name = excluded.name,
     end_date = excluded.end_date,
     sort_order = excluded.sort_order;
 
-update users
-set
-  name = 'cfable',
-  password_hash = 'scrypt:54810bda2b332dcdf8e001f986b44ab5:b71c4bf88c56e7bf17672b1bbb73417720b827c8154ce771522b074695e73bc2c6abd7212f2a02e7e98339abbbac7f9d184c4773cf36317a9305ab8b39d05169',
-  updated_at = now()
-where role = 'admin';
-
-insert into users (participant_code, username, name, phone_last4, password_hash, branch_id, challenge_type_id, role)
-select
-  null,
-  null,
-  'cfable',
-  null,
-  'scrypt:54810bda2b332dcdf8e001f986b44ab5:b71c4bf88c56e7bf17672b1bbb73417720b827c8154ce771522b074695e73bc2c6abd7212f2a02e7e98339abbbac7f9d184c4773cf36317a9305ab8b39d05169',
-  null,
-  null,
-  'admin'
-where not exists (
-  select 1 from users where role = 'admin'
-);
+-- Security note:
+-- Do not seed a fixed admin account or password hash from source control.
+-- Create or rotate admin credentials manually in the target environment.
 
 update users
 set

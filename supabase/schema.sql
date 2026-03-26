@@ -30,11 +30,13 @@ create table if not exists users (
   challenge_type_id uuid references challenge_types(id),
   role text not null check (role in ('participant', 'admin')),
   is_active boolean not null default true,
+  session_version int not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table users add column if not exists username text;
+alter table users add column if not exists session_version int not null default 0;
 create unique index if not exists idx_users_username_unique on users(username) where username is not null;
 
 create table if not exists records (

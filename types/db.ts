@@ -38,6 +38,7 @@ export type UserRow = {
   challenge_type_id: string | null;
   role: UserRole;
   is_active: boolean;
+  session_version: number;
   created_at: string;
   updated_at: string;
   branches?: Branch | null;
@@ -67,6 +68,7 @@ export type SessionUser = {
   name: string;
   username: string | null;
   participantCode: string | null;
+  sessionVersion: number;
 };
 
 export type DashboardSummary = {
