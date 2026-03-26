@@ -3,8 +3,8 @@ import { cookies } from "next/headers";
 
 import type { SessionUser } from "@/types/db";
 
-const SESSION_COOKIE = "arc_session";
-const REMEMBERED_USERNAME_COOKIE = "arc_remembered_username";
+export const SESSION_COOKIE = "arc_session";
+export const REMEMBERED_USERNAME_COOKIE = "arc_remembered_username";
 const PARTICIPANT_SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 const ADMIN_SESSION_MAX_AGE = 60 * 60 * 12;
 

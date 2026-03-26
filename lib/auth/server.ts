@@ -1,11 +1,18 @@
 import { redirect } from "next/navigation";
 
-import { clearSessionCookie, readSessionCookie } from "@/lib/auth/session";
+import { readSessionCookie } from "@/lib/auth/session";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type { SessionUser, UserRole, UserRow } from "@/types/db";
 
 export async function getCurrentSession() {
   return readSessionCookie();
+}
+
+function buildSessionResetRedirectPath(redirectTo: string) {
+  const target =
+    redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/login";
+
+  return `/auth/session/clear?redirect=${encodeURIComponent(target)}`;
 }
 
 async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
@@ -24,7 +31,6 @@ async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
     data.session_version !== session.sessionVersion ||
     !roles.includes(data.role as UserRole)
   ) {
-    await clearSessionCookie();
     return false;
   }
 
@@ -34,7 +40,7 @@ async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
 export async function requireRole(role: UserRole, redirectTo: string) {
   const session = await getCurrentSession();
   if (!session || session.role !== role || !(await validateActiveSession(session, [role]))) {
-    redirect(redirectTo);
+    redirect(buildSessionResetRedirectPath(redirectTo));
   }
 
   return session;
@@ -43,7 +49,7 @@ export async function requireRole(role: UserRole, redirectTo: string) {
 export async function requireAnyRole(roles: UserRole[], redirectTo: string) {
   const session = await getCurrentSession();
   if (!session || !roles.includes(session.role) || !(await validateActiveSession(session, roles))) {
-    redirect(redirectTo);
+    redirect(buildSessionResetRedirectPath(redirectTo));
   }
 
   return session;
@@ -60,13 +66,11 @@ export async function getCurrentUserRow(session: SessionUser): Promise<UserRow> 
     .single();
 
   if (error || !data) {
-    await clearSessionCookie();
-    redirect("/login");
+    redirect(buildSessionResetRedirectPath("/login"));
   }
 
   if (!data.is_active || data.role !== session.role) {
-    await clearSessionCookie();
-    throw new Error("사용자 정보를 불러오지 못했습니다.");
+    redirect(buildSessionResetRedirectPath("/login"));
   }
 
   return data as unknown as UserRow;
