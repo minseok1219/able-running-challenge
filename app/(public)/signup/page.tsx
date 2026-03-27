@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { SignupForm } from "@/components/forms";
 import { SetupNotice } from "@/components/setup-notice";
 import { AppShell, AlertMessage, ButtonLink, Panel } from "@/components/ui";
@@ -6,6 +8,12 @@ import { hasSupabaseEnv } from "@/lib/config/runtime";
 import { getPublicSetupData } from "@/lib/supabase/queries";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false
+  }
+};
 
 export default async function SignupPage({
   searchParams

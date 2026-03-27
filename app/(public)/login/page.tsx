@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
+
 import { ParticipantLoginForm } from "@/components/forms";
 import { SetupNotice } from "@/components/setup-notice";
 import { AppShell, AlertMessage, Panel } from "@/components/ui";
 import { participantLoginAction } from "@/lib/actions/auth";
 import { readRememberedUsernameCookie } from "@/lib/auth/session";
 import { hasSupabaseEnv } from "@/lib/config/runtime";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false
+  }
+};
 
 export default async function LoginPage({
   searchParams
