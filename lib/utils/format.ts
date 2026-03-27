@@ -11,6 +11,7 @@ export function getTodayDateString() {
 
 export function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     year: "numeric",
     month: "short",
     day: "numeric"
@@ -19,6 +20,7 @@ export function formatDate(value: string) {
 
 export function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     year: "numeric",
     month: "short",
     day: "numeric",

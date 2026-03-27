@@ -115,7 +115,7 @@ export default async function AdminRecordsPage({
                           {record.users?.participant_code}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-slate-500">{formatDate(record.run_date)} 업로드</p>
+                      <p className="mt-1 text-sm text-slate-500">{formatDateTime(record.created_at)} 업로드</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <StatusBadge status={record.status} />
@@ -137,9 +137,10 @@ export default async function AdminRecordsPage({
                 </summary>
 
                 <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-4 sm:px-5">
-                  <div className="grid gap-3 rounded-[22px] border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="grid gap-3 rounded-[22px] border border-slate-200 bg-white p-4 sm:grid-cols-2 xl:grid-cols-5">
                     <MetaChip label="참가자" value={`${record.users?.name} / @${record.users?.username ?? "-"}`} />
                     <MetaChip label="기록일" value={formatDate(record.run_date)} />
+                    <MetaChip label="업로드 시각" value={formatDateTime(record.created_at)} />
                     <MetaChip
                       label="거리 · 페이스"
                       value={`${formatDistanceNumber(record.distance_m)}km · ${formatPace(record.pace_sec_per_km)}/km`}
