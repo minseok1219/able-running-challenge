@@ -8,6 +8,18 @@ export async function getCurrentSession() {
   return readSessionCookie();
 }
 
+export async function getActiveSessionOrNull(roles?: UserRole[]) {
+  const session = await getCurrentSession();
+  if (!session) {
+    return null;
+  }
+
+  const allowedRoles = roles?.length ? roles : [session.role];
+  const isValid = await validateActiveSession(session, allowedRoles);
+
+  return isValid ? session : null;
+}
+
 function buildSessionResetRedirectPath(redirectTo: string) {
   const target =
     redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/login";
@@ -38,8 +50,8 @@ async function validateActiveSession(session: SessionUser, roles: UserRole[]) {
 }
 
 export async function requireRole(role: UserRole, redirectTo: string) {
-  const session = await getCurrentSession();
-  if (!session || session.role !== role || !(await validateActiveSession(session, [role]))) {
+  const session = await getActiveSessionOrNull([role]);
+  if (!session || session.role !== role) {
     redirect(buildSessionResetRedirectPath(redirectTo));
   }
 
@@ -47,8 +59,8 @@ export async function requireRole(role: UserRole, redirectTo: string) {
 }
 
 export async function requireAnyRole(roles: UserRole[], redirectTo: string) {
-  const session = await getCurrentSession();
-  if (!session || !roles.includes(session.role) || !(await validateActiveSession(session, roles))) {
+  const session = await getActiveSessionOrNull(roles);
+  if (!session || !roles.includes(session.role)) {
     redirect(buildSessionResetRedirectPath(redirectTo));
   }
 

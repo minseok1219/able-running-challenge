@@ -277,7 +277,7 @@ export async function toggleParticipantActiveAction(formData: FormData) {
 
     const { data: targetUser, error: fetchError } = await supabase
       .from("users")
-      .select("id, role, is_active, name, username, participant_code")
+      .select("id, role, is_active, name, username, participant_code, session_version")
       .eq("id", userId)
       .single();
 
@@ -288,7 +288,8 @@ export async function toggleParticipantActiveAction(formData: FormData) {
     const { error } = await supabase
       .from("users")
       .update({
-        is_active: nextActive
+        is_active: nextActive,
+        session_version: (targetUser.session_version ?? 0) + 1
       })
       .eq("id", userId);
 

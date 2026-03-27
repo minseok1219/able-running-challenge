@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { MobilePublicMenu } from "@/components/navigation-mobile-menu";
 import { logoutAction } from "@/lib/actions/auth";
-import { getCurrentSession } from "@/lib/auth/server";
+import { getActiveSessionOrNull } from "@/lib/auth/server";
 import type { UserRole } from "@/types/db";
 
 function navItemClassName() {
@@ -18,7 +18,7 @@ export function mobilePanelItemClassName() {
 }
 
 export async function PublicNav() {
-  const session = await getCurrentSession();
+  const session = await getActiveSessionOrNull(["participant", "admin"]);
   const role = session?.role ?? null;
 
   return (

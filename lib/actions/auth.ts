@@ -28,10 +28,25 @@ import {
 } from "@/lib/validators/auth";
 import type { SessionUser, UserRow } from "@/types/db";
 
+type LoginFailureReason = "invalid_credentials" | "system";
+
+class LoginActionError extends Error {
+  reason: LoginFailureReason;
+
+  constructor(reason: LoginFailureReason, message: string) {
+    super(message);
+    this.reason = reason;
+  }
+}
+
 function buildRedirect(path: string, params: Record<string, string>) {
   const url = new URL(path, "http://localhost");
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   return `${url.pathname}${url.search}`;
+}
+
+function shouldRecordFailedLoginAttempt(error: unknown) {
+  return error instanceof LoginActionError && error.reason === "invalid_credentials";
 }
 
 async function getClientIpAddress() {
@@ -128,16 +143,16 @@ async function findUserByCredentials({
     .maybeSingle();
 
   if (error) {
-    throw new Error("로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    throw new LoginActionError("system", "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   }
 
   if (!data) {
-    throw new Error(invalidCredentialMessage);
+    throw new LoginActionError("invalid_credentials", invalidCredentialMessage);
   }
 
   const user = data as UserRow;
   if (!verifyPassword(password, user.password_hash)) {
-    throw new Error(invalidCredentialMessage);
+    throw new LoginActionError("invalid_credentials", invalidCredentialMessage);
   }
 
   return user;
@@ -188,7 +203,7 @@ export async function participantLoginAction(formData: FormData) {
     redirect("/dashboard");
   } catch (error) {
     rethrowIfRedirectError(error);
-    if (rateLimitTargets.length > 0) {
+    if (rateLimitTargets.length > 0 && shouldRecordFailedLoginAttempt(error)) {
       await recordFailedLoginAttempt(rateLimitTargets);
     }
     redirect(
@@ -238,7 +253,7 @@ export async function adminLoginAction(formData: FormData) {
     redirect("/admin/overview");
   } catch (error) {
     rethrowIfRedirectError(error);
-    if (rateLimitTargets.length > 0) {
+    if (rateLimitTargets.length > 0 && shouldRecordFailedLoginAttempt(error)) {
       await recordFailedLoginAttempt(rateLimitTargets);
     }
     redirect(

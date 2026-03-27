@@ -9,7 +9,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "backup:export": "node scripts/backup-export.mjs",
-    "backup:nas-sync": "node scripts/backup-sync-to-nas.mjs"
+    "backup:nas-sync": "node scripts/backup-sync-to-nas.mjs",
+    "login-attempts:cleanup": "node scripts/cleanup-login-attempts.mjs",
+    "reset:participant-password": "node scripts/reset-participant-password.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",
