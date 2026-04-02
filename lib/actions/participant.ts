@@ -17,15 +17,15 @@ function validateRecordDate(runDate: string, challengeStart: string, challengeEn
   }
 
   const today = allowLocalChallengeTesting() ? challengeEnd : getTodayDateString();
-  if (runDate > today) {
-    throw new Error("미래 날짜는 입력할 수 없습니다.");
-  }
-
   const resetDate = getChallengeResetDate({ start_date: challengeStart });
   const shouldEnforceChallengeWindow = getTodayDateString() >= resetDate;
 
   if (runDate > challengeEnd || (shouldEnforceChallengeWindow && runDate < challengeStart)) {
     throw new Error("챌린지 기간 내 날짜만 입력할 수 있습니다.");
+  }
+
+  if (runDate !== today) {
+    throw new Error("기록은 러닝한 당일 날짜로만 입력할 수 있습니다.");
   }
 }
 

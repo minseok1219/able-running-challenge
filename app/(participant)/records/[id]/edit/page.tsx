@@ -2,7 +2,7 @@ import { RecordForm } from "@/components/forms";
 import { ParticipantNav } from "@/components/navigation";
 import { AppShell, AlertMessage, Panel } from "@/components/ui";
 import { getEditableRecord, updateRecordAction } from "@/lib/actions/participant";
-import { formatDate, formatDistanceKm, formatPace } from "@/lib/utils/format";
+import { formatDate, formatDateTime, formatDistanceKm, formatPace } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +41,10 @@ export default async function EditRecordPage({
             <div className="rounded-2xl bg-slate-50 px-4 py-3">
               <p className="text-xs font-medium text-slate-500">날짜</p>
               <p className="mt-1 text-base font-semibold text-slate-900">{formatDate(record.run_date)}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium text-slate-500">업로드 시각</p>
+              <p className="mt-1 text-base font-semibold text-slate-900">{formatDateTime(record.created_at)}</p>
             </div>
             <div className="rounded-2xl bg-slate-50 px-4 py-3">
               <p className="text-xs font-medium text-slate-500">거리</p>

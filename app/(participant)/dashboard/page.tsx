@@ -12,6 +12,7 @@ import {
 import { getParticipantDashboard } from "@/lib/supabase/queries";
 import {
   formatDate,
+  formatDateTime,
   formatDelta,
   formatDistanceKm,
   formatPercent,
@@ -325,6 +326,7 @@ export default async function DashboardPage() {
                     <p className="mt-1 text-sm text-slate-600">
                       {formatDistanceKm(record.distance_m)} · {formatPace(record.pace_sec_per_km)}/km
                     </p>
+                    <p className="mt-1 text-xs text-slate-500">업로드 {formatDateTime(record.created_at)}</p>
                     {record.note ? <p className="mt-3 text-sm leading-6 text-slate-600">메모: {record.note}</p> : null}
                   </div>
                   <StatusBadge status={record.status} />

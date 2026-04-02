@@ -6,7 +6,7 @@ import { AppShell, AlertMessage, EmptyState, Panel, StatusBadge } from "@/compon
 import { deleteParticipantAction, updateParticipantBranchAction } from "@/lib/actions/admin";
 import { requireRole } from "@/lib/auth/server";
 import { getAdminParticipantDetail, getPublicSetupData } from "@/lib/supabase/queries";
-import { formatDate, formatDistanceKm, formatPercent, formatPace } from "@/lib/utils/format";
+import { formatDate, formatDateTime, formatDistanceKm, formatPercent, formatPace } from "@/lib/utils/format";
 import type { WeeklyProgressStatus } from "@/types/db";
 
 export const dynamic = "force-dynamic";
@@ -150,53 +150,94 @@ export default async function AdminParticipantDetailPage({
       </Panel>
 
       <Panel title="주차별 달성 현황" description="approved 기록만 합산하여 각 주차 기준 거리 충족 여부를 판단합니다.">
-        <div className="hidden overflow-hidden rounded-[24px] border border-slate-200 lg:block">
-          <table className="min-w-full divide-y divide-slate-200 bg-white text-sm">
-            <thead className="bg-slate-50 text-left text-slate-600">
-              <tr>
-                <th className="px-4 py-3 font-semibold">주차</th>
-                <th className="px-4 py-3 font-semibold">기간</th>
-                <th className="px-4 py-3 font-semibold">기준 거리</th>
-                <th className="px-4 py-3 font-semibold">실제 누적 거리</th>
-                <th className="px-4 py-3 font-semibold">상태</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {participant.weeklyProgress.map((week) => (
-                <tr key={week.weekNumber} className="align-top">
-                  <td className="px-4 py-4 font-semibold text-slate-900">{week.label}</td>
-                  <td className="px-4 py-4 text-slate-600">
-                    {formatDate(week.startDate)} ~ {formatDate(week.endDate)}
-                  </td>
-                  <td className="px-4 py-4 text-slate-900">{formatDistanceKm(week.targetDistanceM)}</td>
-                  <td className="px-4 py-4 text-slate-900">{formatDistanceKm(week.actualDistanceM)}</td>
-                  <td className="px-4 py-4">
-                    <WeeklyProgressBadge status={week.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <div className="rounded-[24px] border border-slate-200 bg-white">
+          <div className="hidden grid-cols-[1fr_2.2fr_1fr_1fr_auto_auto] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-600 lg:grid">
+            <span>주차</span>
+            <span>기간</span>
+            <span>기준 거리</span>
+            <span>실제 누적 거리</span>
+            <span>상태</span>
+            <span className="text-right">기록</span>
+          </div>
 
-        <div className="grid gap-3 lg:hidden">
-          {participant.weeklyProgress.map((week) => (
-            <article key={week.weekNumber} className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-base font-semibold text-slate-950">{week.label}</p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {formatDate(week.startDate)} ~ {formatDate(week.endDate)}
-                  </p>
+          <div className="divide-y divide-slate-100">
+            {participant.weeklyProgress.map((week) => (
+              <details key={week.weekNumber} className="group">
+                <summary className="cursor-pointer list-none px-4 py-4 marker:hidden transition hover:bg-slate-50/80 lg:px-5">
+                  <div className="grid gap-3 lg:grid-cols-[1fr_2.2fr_1fr_1fr_auto_auto] lg:items-center lg:gap-4">
+                    <div>
+                      <p className="text-base font-semibold text-slate-950">{week.label}</p>
+                      <p className="mt-1 text-xs text-slate-500 lg:hidden">
+                        {formatDate(week.startDate)} ~ {formatDate(week.endDate)}
+                      </p>
+                    </div>
+                    <p className="hidden text-sm text-slate-600 lg:block">
+                      {formatDate(week.startDate)} ~ {formatDate(week.endDate)}
+                    </p>
+                    <p className="text-sm font-medium text-slate-900">{formatDistanceKm(week.targetDistanceM)}</p>
+                    <p className="text-sm font-medium text-slate-900">{formatDistanceKm(week.actualDistanceM)}</p>
+                    <div>
+                      <WeeklyProgressBadge status={week.status} />
+                    </div>
+                    <div className="flex items-center justify-between gap-3 lg:justify-end">
+                      <p className="text-sm text-slate-500">
+                        기록 {week.recordCount}건
+                        <span className="hidden text-slate-400 sm:inline">
+                          {" "}
+                          · 승인 {week.approvedRecordCount}건
+                        </span>
+                      </p>
+                      <span className="inline-flex min-w-20 items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition group-open:border-slate-300 group-open:bg-slate-900 group-open:text-white">
+                        <span className="group-open:hidden">기록 보기</span>
+                        <span className="hidden group-open:inline">닫기</span>
+                      </span>
+                    </div>
+                  </div>
+                </summary>
+
+                <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-4 lg:px-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-slate-600">
+                      기록 목록은 전체 업로드 기준이며, 달성 여부와 누적 거리는 approved 기록만 반영됩니다.
+                    </p>
+                    <p className="text-xs font-medium text-slate-500">
+                      승인 {week.approvedRecordCount}건
+                      {week.warningRecordCount > 0 ? ` · 경고 ${week.warningRecordCount}건` : ""}
+                      {week.rejectedRecordCount > 0 ? ` · 거절 ${week.rejectedRecordCount}건` : ""}
+                    </p>
+                  </div>
+
+                  {week.records.length === 0 ? (
+                    <div className="mt-4 rounded-[20px] border border-dashed border-slate-200 bg-white px-4 py-5 text-sm text-slate-500">
+                      이 주차에 업로드된 기록이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="mt-4 grid gap-3">
+                      {week.records.map((record) => (
+                        <div key={record.id} className="rounded-[20px] border border-slate-200 bg-white p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">{formatDate(record.run_date)}</p>
+                              <p className="mt-1 text-sm text-slate-600">
+                                {formatDistanceKm(record.distance_m)} · {formatPace(record.pace_sec_per_km)}/km
+                              </p>
+                              <p className="mt-1 text-xs text-slate-500">업로드 {formatDateTime(record.created_at)}</p>
+                            </div>
+                            <StatusBadge status={record.status} />
+                          </div>
+                          {record.warning_reason ? (
+                            <p className="mt-3 text-sm text-amber-700">사유: {record.warning_reason}</p>
+                          ) : record.note ? (
+                            <p className="mt-3 text-sm text-slate-600">메모: {record.note}</p>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <WeeklyProgressBadge status={week.status} />
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <SummaryMetric label="기준 거리" value={formatDistanceKm(week.targetDistanceM)} compact />
-                <SummaryMetric label="실제 누적 거리" value={formatDistanceKm(week.actualDistanceM)} compact />
-              </div>
-            </article>
-          ))}
+              </details>
+            ))}
+          </div>
         </div>
       </Panel>
 

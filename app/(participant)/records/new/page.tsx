@@ -37,6 +37,7 @@ export default async function NewRecordPage({
         <div className="grid gap-4">
           <Panel title="입력 기준" className="bg-gradient-to-br from-white via-slate-50 to-slate-50">
             <div className="grid gap-3 text-sm leading-6 text-slate-600">
+              <p>기록은 러닝한 당일 날짜로만 입력할 수 있습니다.</p>
               <p>최소 인정 거리는 2km입니다.</p>
               <p>평균 페이스 9:00/km 이하만 승인 대상입니다.</p>
               <p>경고나 거절 기록은 리더보드와 누적 거리에 반영되지 않습니다.</p>
@@ -44,7 +45,7 @@ export default async function NewRecordPage({
           </Panel>
           <Panel title="입력 팁" className="bg-gradient-to-br from-orange-50/70 via-white to-white">
             <div className="grid gap-3 text-sm leading-6 text-slate-600">
-              <p>러닝 직후 바로 입력하면 날짜와 페이스를 더 정확히 남길 수 있습니다.</p>
+              <p>러닝 직후 바로 입력하면 날짜 제한을 놓치지 않고 페이스도 더 정확히 남길 수 있습니다.</p>
               <p>메모에는 코스나 컨디션을 짧게 남겨두면 나중에 기록을 보기 편합니다.</p>
               <p>실제로 러닝한 기록만 입력해 주세요.</p>
             </div>

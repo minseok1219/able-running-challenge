@@ -5,7 +5,7 @@ import { AppShell, AlertMessage, ButtonLink, EmptyState, Panel, StatusBadge } fr
 import { deleteRecordAction } from "@/lib/actions/participant";
 import { requireRole, getCurrentUserRow } from "@/lib/auth/server";
 import { getParticipantRecords } from "@/lib/supabase/queries";
-import { formatDate, formatDistanceKm, formatPace, isEditableToday } from "@/lib/utils/format";
+import { formatDate, formatDateTime, formatDistanceKm, formatPace, isEditableToday } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +61,7 @@ export default async function RecordsPage({
             }
           />
           <div className="mt-4 grid gap-3 text-sm leading-6 text-slate-600">
+            <p>기록은 러닝한 당일에만 입력할 수 있습니다.</p>
             <p>기록은 등록 당일에만 수정하거나 삭제할 수 있습니다.</p>
             <p>승인 기록만 누적 거리와 리더보드에 반영됩니다.</p>
             <p>경고나 거절 사유가 있으면 각 기록 카드에서 바로 확인할 수 있습니다.</p>
@@ -99,6 +100,7 @@ export default async function RecordsPage({
                     <p className="mt-1 text-sm text-slate-500">
                       {record.note ? "메모가 포함된 기록입니다." : "메모 없는 간단 기록입니다."}
                     </p>
+                    <p className="mt-1 text-sm text-slate-500">업로드: {formatDateTime(record.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={record.status} />

@@ -1,8 +1,8 @@
 import type { Branch, ChallengeType, RecordRow } from "@/types/db";
 
 import { Input, Select, SubmitButton, Textarea } from "@/components/ui";
-import { shouldResetPreChallengeRecords } from "@/lib/calculations/challenge";
-import { formatDistanceNumber, formatPace } from "@/lib/utils/format";
+import { allowLocalChallengeTesting } from "@/lib/config/runtime";
+import { formatDistanceNumber, formatPace, getTodayDateString } from "@/lib/utils/format";
 
 export function SignupForm({
   branches,
@@ -94,6 +94,8 @@ export function RecordForm({
   challenge: Pick<ChallengeType, "start_date" | "end_date">;
   record?: RecordRow;
 }) {
+  const allowedDate = allowLocalChallengeTesting() ? challenge.end_date : getTodayDateString();
+
   return (
     <form action={action} className="grid gap-5">
       <div className="grid gap-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
@@ -102,9 +104,9 @@ export function RecordForm({
             label="날짜"
             name="run_date"
             type="date"
-            defaultValue={record?.run_date}
-            min={shouldResetPreChallengeRecords(challenge) ? challenge.start_date : undefined}
-            max={challenge.end_date}
+            defaultValue={record?.run_date ?? allowedDate}
+            min={allowedDate}
+            max={allowedDate}
             required
           />
           <Input
@@ -159,6 +161,7 @@ export function RecordForm({
         <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 shadow-sm">
           <p className="text-sm font-semibold text-slate-900">입력 규칙</p>
           <ul className="mt-3 grid gap-2 text-sm leading-6 text-slate-600">
+            <li>기록 날짜는 러닝한 당일만 선택할 수 있습니다</li>
             <li>거리는 km 단위 입력 · 예: 5.2</li>
             <li>평균 페이스는 mm:ss 형식 · 예: 5:30</li>
             <li>기록 메모는 선택 입력입니다</li>

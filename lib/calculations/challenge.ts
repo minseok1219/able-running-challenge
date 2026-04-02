@@ -2,6 +2,7 @@ import { allowLocalChallengeTesting } from "@/lib/config/runtime";
 import { getBadgeDefinition, getBadgeOrder, pickRandomBadgeMessage } from "@/lib/calculations/badges";
 import { getTodayDateString } from "@/lib/utils/format";
 import type {
+  AdminWeeklyProgressItem,
   AdminParticipantDetail,
   AdminParticipantSummary,
   BadgeCode,
@@ -325,6 +326,26 @@ export function buildAdminParticipantDetail(args: {
     .filter((record) => record.status === "approved")
     .reduce((sum, record) => sum + record.distance_m, 0);
   const weeklyProgress = calculateWeeklyProgress(args.records, args.challenge);
+  const weeklyProgressWithRecords = weeklyProgress.items.map((week) => {
+    const weekRecords = [...scopedRecords]
+      .filter((record) => record.run_date >= week.startDate && record.run_date <= week.endDate)
+      .sort((a, b) => {
+        if (a.run_date === b.run_date) {
+          return b.created_at.localeCompare(a.created_at);
+        }
+
+        return b.run_date.localeCompare(a.run_date);
+      });
+
+    return {
+      ...week,
+      records: weekRecords,
+      recordCount: weekRecords.length,
+      approvedRecordCount: weekRecords.filter((record) => record.status === "approved").length,
+      warningRecordCount: weekRecords.filter((record) => record.status === "warning").length,
+      rejectedRecordCount: weekRecords.filter((record) => record.status === "rejected").length
+    } satisfies AdminWeeklyProgressItem;
+  });
   const recentRecords = [...scopedRecords].sort((a, b) => {
     if (a.run_date === b.run_date) {
       return b.created_at.localeCompare(a.created_at);
@@ -342,7 +363,7 @@ export function buildAdminParticipantDetail(args: {
     currentWeekStatus: weeklyProgress.currentWeekStatus,
     lastRecordDate: recentRecords[0]?.run_date ?? null,
     recentRecords,
-    weeklyProgress: weeklyProgress.items
+    weeklyProgress: weeklyProgressWithRecords
   } satisfies AdminParticipantDetail;
 }
 

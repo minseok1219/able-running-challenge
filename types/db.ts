@@ -188,6 +188,14 @@ export type WeeklyProgressItem = {
   status: WeeklyProgressStatus;
 };
 
+export type AdminWeeklyProgressItem = WeeklyProgressItem & {
+  records: RecordRow[];
+  recordCount: number;
+  approvedRecordCount: number;
+  warningRecordCount: number;
+  rejectedRecordCount: number;
+};
+
 export type WeeklyProgressSummary = {
   totalWeeks: number;
   achievedWeeks: number;
@@ -232,5 +240,5 @@ export type AdminParticipantDetail = {
   currentWeekStatus: WeeklyListStatus;
   lastRecordDate: string | null;
   recentRecords: RecordRow[];
-  weeklyProgress: WeeklyProgressItem[];
+  weeklyProgress: AdminWeeklyProgressItem[];
 };
