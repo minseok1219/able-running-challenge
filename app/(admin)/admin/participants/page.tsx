@@ -14,6 +14,7 @@ type PageSearchParams = {
   q?: string;
   branch?: string;
   challenge?: string;
+  completion?: string;
   delinquent?: string;
   error?: string;
   updated?: string;
@@ -34,6 +35,7 @@ export default async function AdminParticipantsPage({
   const q = params.q?.trim().toLowerCase() ?? "";
   const branchFilter = params.branch ?? "";
   const challengeFilter = params.challenge ?? "";
+  const completionFilter = params.completion ?? "";
   const delinquentOnly = params.delinquent === "1";
 
   const filteredParticipants = participants.filter((participant) => {
@@ -44,9 +46,12 @@ export default async function AdminParticipantsPage({
       participant.participantCode.toLowerCase().includes(q);
     const matchesBranch = !branchFilter || participant.branchCode === branchFilter;
     const matchesChallenge = !challengeFilter || participant.challengeCode === challengeFilter;
+    const matchesCompletion =
+      !completionFilter ||
+      (completionFilter === "completed" ? participant.progress >= 1 : participant.progress < 1);
     const matchesDelinquent = !delinquentOnly || participant.currentWeekStatus === "미달";
 
-    return matchesQuery && matchesBranch && matchesChallenge && matchesDelinquent;
+    return matchesQuery && matchesBranch && matchesChallenge && matchesCompletion && matchesDelinquent;
   });
 
   return (
@@ -73,9 +78,9 @@ export default async function AdminParticipantsPage({
 
       <Panel
         title="필터"
-        description="이름, 지점, 종목 기준으로 빠르게 찾고 이번 주 미달자만 따로 확인할 수 있습니다."
+        description="이름, 지점, 종목, 완주 여부 기준으로 빠르게 찾고 이번 주 미달자만 따로 확인할 수 있습니다."
       >
-        <form className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr_0.8fr_auto_auto] lg:items-end">
+        <form className="grid gap-3 lg:grid-cols-[1.15fr_0.75fr_0.75fr_0.75fr_auto_auto] lg:items-end">
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             <span>이름 검색</span>
             <input
@@ -114,6 +119,18 @@ export default async function AdminParticipantsPage({
                   {challenge.name}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-medium text-slate-700">
+            <span>완주 여부</span>
+            <select
+              name="completion"
+              defaultValue={completionFilter}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+            >
+              <option value="">전체 상태</option>
+              <option value="completed">완주자</option>
+              <option value="incomplete">미완주자</option>
             </select>
           </label>
           <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
